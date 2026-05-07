@@ -4,7 +4,7 @@
 .vault_pass
 
 # Secrets
-group_vars/all_secrets.yml
+group_vars/all/vault.yml
 
 # OS/Editor Junk
 .DS_Store

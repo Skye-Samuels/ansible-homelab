@@ -1,12 +1,5 @@
 ---
 
-- name: Vault Decryption Check
-  hosts: all
-  tasks:
-    - name: Verify Vault Decryption
-      debug:
-        msg: "Vault decryption successful. PIA User: {{ pia_user }} | PIA Password: {{ pia_pass }} | Pi-hole Pass: {{ pihole_password }}"
-
 - name: Layer 0 - Storage Emulation
   import_playbook: 0_storage.yml
 

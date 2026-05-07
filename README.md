@@ -2,19 +2,60 @@
 
 A modular, layered Ansible project to deploy a complete media and home automation stack on a Debian-based server.
 
-## 🏗 Architecture
-This project uses a **Layered Deployment** strategy, allowing you to build your homelab step-by-step:
+## 🏗 Architecture & Layer Breakdown
+This project uses a modular **Layered Deployment** strategy. Each layer is a standalone playbook that builds upon the previous one.
 
-- **Layer 0: Storage** - MergerFS pool and disk formatting.
-- **Layer 1: Base** - Hostname, Timezone, and core packages.
-- **Layer 2: Networking** - Static IP and network config.
-- **Layer 3: Security** - UFW Firewall and SSH hardening.
-- **Layer 4: Docker** - Docker Engine, Compose, and LazyDocker.
-- **Layer 5: Caddy** - Reverse proxy with automatic HTTPS.
-- **Layer 6: Pi-hole** - Network-wide ad blocking.
-- **Layer 7: Nextcloud** - Personal cloud and file sync (AIO).
-- **Layer 8: Mealie** - Recipe management and meal planning.
-- **Layer 9: Jellyfin Stack** - The "Full Arrs" media stack (Jellyfin, Sonarr, Radarr, Prowlarr, qBitTorrent + VPN).
+### [Layer 0] Storage
+**Purpose:** Prepares the physical storage array.
+- **Technologies:** MergerFS, `ext4`, `mount`.
+- **Details:** Formats secondary drives, creates mount points, and establishes a pooled `storage_root` using MergerFS for transparent disk spanning.
+
+### [Layer 1] Base System
+**Purpose:** Initial server hardening and utility setup.
+- **Details:** Sets hostname, configures Timezone, updates APT cache, and installs core admin tools (`neovim`, `btop`, `htop`, `fastfetch`).
+
+### [Layer 2] Networking & DNS
+**Purpose:** Ensures stable connectivity.
+- **Details:** Configures static IP settings (if defined) and ensures DNS persistence.
+
+### [Layer 3] Security
+**Purpose:** Perimeter and access security.
+- **Technologies:** UFW (Uncomplicated Firewall), Fail2Ban.
+- **Details:** Closes all ports except essential ones (SSH, HTTP/S), configures Fail2Ban to prevent brute-force attacks, and hardens SSH config.
+
+### [Layer 4] Docker Engine
+**Purpose:** The containerization foundation.
+- **Details:** Installs Docker Engine, Docker Compose, and **LazyDocker** for terminal-based container management.
+
+### [Layer 5] Caddy Reverse Proxy
+**Purpose:** Edge routing and SSL management.
+- **Container:** `lucaslorentz/caddy-docker-proxy`.
+- **Details:** Automatically discovers other containers via Docker labels and provisions Let's Encrypt / ZeroSSL certificates.
+
+### [Layer 6] Pi-hole
+**Purpose:** Network-wide ad and tracker blocking.
+- **Container:** `pihole/pihole`.
+- **Details:** Deploys Pi-hole with a customized web port and automated DNS health checks.
+
+### [Layer 7] Nextcloud AIO
+**Purpose:** Private cloud and productivity suite.
+- **Container:** `nextcloud/all-in-one`.
+- **Details:** Deploys the Nextcloud AIO mastercontainer, enabling a complete personal cloud with high-performance backend.
+
+### [Layer 8] Mealie
+**Purpose:** Recipe and meal management.
+- **Container:** `hkotel/mealie`.
+- **Details:** Provides a centralized database for recipes with a clean, mobile-friendly web UI.
+
+### [Layer 9] The Jellyfin "Arr" Stack
+**Purpose:** Fully automated media management and streaming.
+- **Containers:** 
+  - **Networking:** `gluetun` (VPN Gateway for the stack).
+  - **Streaming:** `jellyfin`.
+  - **Management:** `sonarr`, `radarr`, `prowlarr`, `bazarr`, `flaresolverr`.
+  - **Utilities:** `jellyseerr` (Requests), `wizarr` (Invites), `newtarr`.
+  - **Downloads:** `qbittorrent`.
+- **Details:** All traffic for downloaders and indexers is strictly routed through the `gluetun` VPN container to ensure privacy.
 
 ## 🚀 Quick Start
 
