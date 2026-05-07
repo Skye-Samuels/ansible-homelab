@@ -1,0 +1,18 @@
+# Managed by Ansible - Changes will be overwritten
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+PermitRootLogin no
+KbdInteractiveAuthentication no
+AllowUsers {{ allowed_users | default('sysadmin ansible') }}
+StrictModes yes
+MaxAuthTries 3
+LoginGraceTime 30
+ClientAliveInterval 300
+ClientAliveCountMax 2
+UsePAM yes
+X11Forwarding no
+PrintMotd no
+
+AcceptEnv LANG LC_* COLORTERM NO_COLOR
+Subsystem sftp /usr/lib/openssh/sftp-server

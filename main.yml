@@ -1,0 +1,38 @@
+---
+
+- name: Vault Decryption Check
+  hosts: all
+  tasks:
+    - name: Verify Vault Decryption
+      debug:
+        msg: "Vault decryption successful. PIA User: {{ pia_user }} | PIA Password: {{ pia_pass }} | Pi-hole Pass: {{ pihole_password }}"
+
+- name: Layer 0 - Storage Emulation
+  import_playbook: 0_storage.yml
+
+- name: Layer 1 - Base System Setup
+  import_playbook: 1_base.yml
+
+- name: Layer 2 - Networking & DNS
+  import_playbook: 2_networking.yml
+
+- name: Layer 3 - Security Hardening
+  import_playbook: 3_security.yml
+
+- name: Layer 4 - Docker
+  import_playbook: 4_docker.yml
+
+- name: Layer 5 - Deploy Caddy Reverse Proxy
+  import_playbook: 5_caddy.yml
+
+- name: Layer 6 - Deploy Pi-hole DNS
+  import_playbook: 6_pihole.yml
+
+- name: Layer 7 - Deploy Nextcloud AIO
+  import_playbook: 7_nextcloud.yml
+
+- name: Layer 8 - Deploy Mealie
+  import_playbook: 8_mealie.yml
+
+- name: Layer 9 - Deploy Jellyfin Stack
+  import_playbook: 9_jellyfin.yml

@@ -1,0 +1,10 @@
+# EXAMPLE FILE - DO NOT ENCRYPT THIS
+# Use this as a template for your vault file.
+# 1. Copy these contents.
+# 2. Run the following ansible-vault command:
+#    ansible-vault create group_vars/all_secrets.yml
+# 3. Paste and edit your real PIA and Pi-hole passwords.
+
+vault_pihole_password: "your_pihole_admin_password"
+vault_pia_user: "your_pia_username"
+vault_pia_pass: "your_pia_password"

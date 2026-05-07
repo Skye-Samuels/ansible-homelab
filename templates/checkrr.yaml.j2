@@ -1,0 +1,23 @@
+# checkrr configuration template
+---
+checkpath:
+  - /media
+
+database: /checkrr.db
+logfile: /checkrr.log
+log_level: info
+
+# Arr Services
+arr:
+  sonarr:
+    service: sonarr
+    address: http://sonarr
+    port: 8989
+    apikey: "{{ sonarr_api_key | default('PASTE_SONARR_KEY_HERE') }}"
+    process: true
+  radarr:
+    service: radarr
+    address: http://radarr
+    port: 7878
+    apikey: "{{ radarr_api_key | default('PASTE_RADARR_KEY_HERE') }}"
+    process: true

@@ -1,0 +1,23 @@
+[DEFAULT]
+bantime = 1h
+findtime = 10m
+maxretry = 3
+action = %(action_)s
+
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+
+{% if extra_jails is defined %}
+{% for jail in extra_jails %}
+[{{ jail.name }}]
+enabled = true
+port = {{ jail.port }}
+filter = {{ jail.name }}
+logpath = {{ jail.logpath }}
+maxretry = {{ jail.maxretry | default(3) }}
+{% endfor %}
+{% endif %}

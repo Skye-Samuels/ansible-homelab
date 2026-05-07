@@ -1,0 +1,36 @@
+# General configuration for all hosts
+hostname_desired: "homelab"
+timezone: "America/Los_Angeles"
+
+# Docker/User config
+puid: 1000
+pgid: 1000
+docker_config_path: "/home/sysadmin/docker_configs"
+
+# Storage configurations
+storage_root: "/storage"
+base_storage_path: "{{ storage_root }}/jellyfin/data"
+format_disks: true
+disk_1_source: "/dev/sdb"
+disk_2_source: "/dev/sdc"
+
+# Service configurations
+vpn_region: "CA Vancouver"
+pihole_web_port: 8080
+nextcloud_web_port: 8081
+mealie_web_port: 9000
+qbittorrent_webui_port: 8082
+jellyfin_port: 8096
+jellyseerr_port: 5055
+prowlarr_port: 9696
+radarr_port: 7878
+sonarr_port: 8989
+wizarr_port: 5690
+newtarr_port: 9705
+bazarr_port: 6767
+
+# Mappings (linking secrets to clean names)
+# These will look for the variables inside your encrypted vault file
+pihole_password: "{{ vault_pihole_password | default('change_me') }}"
+pia_user: "{{ vault_pia_user | default('change_me') }}"
+pia_pass: "{{ vault_pia_pass | default('change_me') }}"

@@ -1,0 +1,45 @@
+---
+- name: "Layer 8: Deploy Mealie"
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Create Mealie data directory
+      file:
+        path: "{{ storage_root }}/mealie"
+        state: directory
+        owner: sysadmin
+        group: sysadmin
+        mode: '0775'
+
+    - name: Deploy Mealie Container
+      community.docker.docker_container:
+        name: mealie
+        image: ghcr.io/mealie-recipes/mealie:latest
+        restart_policy: always
+        state: started
+        published_ports:
+          - "127.0.0.1:{{ mealie_web_port }}:9000"
+        memory: 1024M
+        volumes:
+          - "{{ storage_root }}/mealie:/app/data/"
+        networks:
+          - name: caddy_net
+        env:
+          PUID: "{{ puid | string }}"
+          PGID: "{{ pgid | string }}"
+          TZ: "{{ timezone }}"
+          ALLOW_SIGNUP: "true"
+          MAX_BODY_SIZE: "20M"
+        labels:
+          caddy: mealie.homelab.local
+          caddy.reverse_proxy: "{{ '{{' }} upstreams 9000 {{ '}}' }}"
+
+    - name: Wait for Mealie UI to be responsive
+      uri:
+        url: "http://127.0.0.1:{{ mealie_web_port }}/"
+        status_code: 200
+      register: mealie_check
+      until: mealie_check.status == 200
+      retries: 15
+      delay: 5

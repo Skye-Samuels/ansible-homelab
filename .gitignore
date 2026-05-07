@@ -1,0 +1,14 @@
+# Ansible
+*.retry
+*.vault_pass
+.vault_pass
+
+# Secrets
+group_vars/all_secrets.yml
+
+# OS/Editor Junk
+.DS_Store
+.idea/
+.vscode/
+__pycache__/
+*.swp

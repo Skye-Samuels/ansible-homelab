@@ -1,0 +1,186 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "127.0.0.1:{{ qbittorrent_webui_port }}:8082"
+      - "127.0.0.1:{{ prowlarr_port }}:9696"
+      - "127.0.0.1:8191:8191"
+    volumes:
+      - "{{ docker_config_path }}/gluetun:/gluetun"
+    environment:
+      - VPN_SERVICE_PROVIDER=private internet access
+      - VPN_TYPE=openvpn
+      - OPENVPN_USER={{ pia_user }}
+      - OPENVPN_PASSWORD={{ pia_pass }}
+      - SERVER_REGIONS={{ vpn_region }}
+      - TZ={{ timezone }}
+      - HTTPPROXY=on
+      - FIREWALL_OUTBOUND_SUBNETS=10.0.0.0/8,192.168.0.0/16,172.16.0.0/12
+    networks:
+      - caddy_net
+    restart: always
+
+  qbittorrent:
+    image: ghcr.io/hotio/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    environment:
+      - PUID={{ puid }}
+      - PGID={{ pgid }}
+      - TZ={{ timezone }}
+      - WEBUI_PORTS=8082/tcp
+    volumes:
+      - "{{ docker_config_path }}/qbittorrent:/config"
+      - "{{ base_storage_path }}:/data"
+    restart: always
+
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID={{ puid }}
+      - PGID={{ pgid }}
+      - TZ={{ timezone }}
+    volumes:
+      - "{{ docker_config_path }}/prowlarr:/config"
+    restart: always
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    network_mode: "service:gluetun"
+    environment:
+      - LOG_LEVEL=info
+      - TZ={{ timezone }}
+    restart: always
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    networks:
+      - caddy_net
+    ports:
+      - "127.0.0.1:{{ sonarr_port }}:8989"
+    environment:
+      - PUID={{ puid }}
+      - PGID={{ pgid }}
+      - TZ={{ timezone }}
+    volumes:
+      - "{{ docker_config_path }}/sonarr:/config"
+      - "{{ base_storage_path }}:/data"
+    depends_on:
+      - gluetun
+    restart: always
+
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    networks:
+      - caddy_net
+    ports:
+      - "127.0.0.1:{{ radarr_port }}:7878"
+    environment:
+      - PUID={{ puid }}
+      - PGID={{ pgid }}
+      - TZ={{ timezone }}
+    volumes:
+      - "{{ docker_config_path }}/radarr:/config"
+      - "{{ base_storage_path }}:/data"
+    depends_on:
+      - gluetun
+    restart: always
+
+  jellyfin:
+    image: linuxserver/jellyfin:latest
+    container_name: jellyfin
+    networks:
+      - caddy_net
+    ports:
+      - "127.0.0.1:{{ jellyfin_port }}:8096"
+    environment:
+      - PUID={{ puid }}
+      - PGID={{ pgid }}
+      - TZ={{ timezone }}
+    volumes:
+      - "{{ docker_config_path }}/jellyfin:/config"
+      - "{{ base_storage_path }}/media:/data"
+    labels:
+      caddy: jellyfin.homelab.local
+      caddy.reverse_proxy: "{{ '{{' }} upstreams 8096 {{ '}}' }}"
+    restart: always
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    networks:
+      - caddy_net
+    ports:
+      - "127.0.0.1:{{ jellyseerr_port }}:5055"
+    environment:
+      - PUID={{ puid }}
+      - PGID={{ pgid }}
+      - TZ={{ timezone }}
+    volumes:
+      - "{{ docker_config_path }}/jellyseerr:/app/config"
+    labels:
+      caddy: request.homelab.local
+      caddy.reverse_proxy: "{{ '{{' }} upstreams 5055 {{ '}}' }}"
+    restart: always
+
+  wizarr:
+    image: ghcr.io/wizarrrr/wizarr:latest
+    container_name: wizarr
+    networks:
+      - caddy_net
+    ports:
+      - "127.0.0.1:{{ wizarr_port }}:5690"
+    environment:
+      - PUID={{ puid }}
+      - PGID={{ pgid }}
+      - TZ={{ timezone }}
+      - DISABLE_BUILTIN_AUTH=false
+    volumes:
+      - "{{ docker_config_path }}/wizarr:/data"
+    labels:
+      caddy: join.homelab.local
+      caddy.reverse_proxy: "{{ '{{' }} upstreams 5690 {{ '}}' }}"
+    restart: always
+
+  newtarr:
+    image: ghcr.io/elfhosted/newtarr:rolling
+    container_name: newtarr
+    networks:
+      - caddy_net
+    environment:
+      - TZ={{ timezone }}
+    volumes:
+      - "{{ docker_config_path }}/newtarr:/config"
+    ports:
+      - "127.0.0.1:{{ newtarr_port }}:9705"
+    restart: always
+
+  bazarr:
+    image: linuxserver/bazarr:latest
+    container_name: bazarr
+    networks:
+      - caddy_net
+    environment:
+      - PUID={{ puid }}
+      - PGID={{ pgid }}
+      - TZ={{ timezone }}
+    volumes:
+      - "{{ docker_config_path }}/bazarr:/config"
+      - "{{ base_storage_path }}:/data"
+    ports:
+      - "127.0.0.1:{{ bazarr_port }}:6767"
+    restart: always
+
+networks:
+  caddy_net:
+    external: true

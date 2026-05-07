@@ -1,0 +1,36 @@
+---
+- name: "Layer 5: Deploy Caddy Proxy"
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Create Docker network for Caddy
+      community.docker.docker_network:
+        name: caddy_net
+
+    - name: Deploy Caddy Container (Docker Proxy Version)
+      community.docker.docker_container:
+        name: caddy
+        image: lucaslorentz/caddy-docker-proxy:latest
+        restart_policy: unless-stopped
+        env:
+          CADDY_INGRESS_NETWORKS: "caddy_net"
+        networks:
+          - name: caddy_net
+        ports:
+          - "80:80"
+          - "443:443"
+          - "443:443/udp"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - caddy_data:/data
+          - caddy_config:/config
+
+    - name: Update UFW rules for Caddy
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: "{{ 'udp' if item == '443' else 'tcp' }}"
+      loop:
+        - "80"
+        - "443"
