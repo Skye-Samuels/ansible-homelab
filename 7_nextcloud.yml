@@ -39,7 +39,7 @@
           SKIP_DOMAIN_VALIDATION: "true"
           AIO_NETWORK: "caddy_net"
         labels:
-          caddy: cloud.homelab.local
+          caddy: "{{ nextcloud_subdomain }}.{{ domain }}"
           caddy.reverse_proxy: "nextcloud-aio-apache:11000"
 
     - name: Wait for Nextcloud AIO to be ready

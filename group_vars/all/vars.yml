@@ -1,6 +1,14 @@
 # General configuration for all hosts
 hostname_desired: "homelab"
 timezone: "America/Los_Angeles"
+domain: "homelab.local"
+
+# Subdomains
+nextcloud_subdomain: "cloud"
+mealie_subdomain: "mealie"
+jellyfin_subdomain: "jellyfin"
+jellyseerr_subdomain: "request"
+wizarr_subdomain: "join"
 
 # Docker/User config
 puid: 1000
@@ -31,6 +39,6 @@ bazarr_port: 6767
 
 # Mappings (linking secrets to clean names)
 # These will look for the variables inside your encrypted vault file
-pihole_password: "{{ vault_pihole_password | default('change_me') }}"
-pia_user: "{{ vault_pia_user | default('change_me') }}"
-pia_pass: "{{ vault_pia_pass | default('change_me') }}"
+pihole_password: "{{ vault_pihole_password | mandatory('Set vault_pihole_password in your vault file.') }}"
+pia_user: "{{ vault_pia_user | mandatory('Set vault_pia_user in your vault file.') }}"
+pia_pass: "{{ vault_pia_pass | mandatory('Set vault_pia_pass in your vault file.') }}"

@@ -32,7 +32,7 @@
           ALLOW_SIGNUP: "true"
           MAX_BODY_SIZE: "20M"
         labels:
-          caddy: mealie.homelab.local
+          caddy: "{{ mealie_subdomain }}.{{ domain }}"
           caddy.reverse_proxy: "{{ '{{' }} upstreams 9000 {{ '}}' }}"
 
     - name: Wait for Mealie UI to be responsive
