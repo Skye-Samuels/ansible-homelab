@@ -1,0 +1,55 @@
+---
+- name: Get info on existing Mealie container
+  community.docker.docker_container_info:
+    name: mealie
+  register: mealie_info
+
+- name: Ensure old or conflicting Mealie container is removed
+  community.docker.docker_container:
+    name: mealie
+    state: absent
+  when: 
+    - mealie_info.exists
+    - mealie_info.container.Config.Labels['com.docker.compose.project'] | default('') != docker_project_name
+
+- name: Ensure Mealie config directory exists
+  ansible.builtin.file:
+    path: "{{ docker_config_path }}/mealie"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0775'
+
+- name: Create Mealie data directory
+  ansible.builtin.file:
+    path: "{{ storage_root }}/mealie"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0775'
+
+- name: Deploy Mealie Compose Template
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_config_path }}/mealie/docker-compose.yml"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0644'
+
+- name: Start Mealie Stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/mealie"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}"
+    state: present
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+
+- name: Wait for Mealie UI to be responsive
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ mealie_web_port }}/"
+    status_code: 200
+  register: mealie_check
+  until: mealie_check.status == 200
+  retries: 15
+  delay: 5

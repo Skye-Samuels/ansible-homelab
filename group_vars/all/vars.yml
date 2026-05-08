@@ -1,12 +1,16 @@
 # General configuration for all hosts
 hostname_desired: "homelab"
-timezone: "America/Los_Angeles"
-domain: "homelab.local"
+timezone: "America/Los_Angeles" # CHANGE TO YOUR TIMEZONE
+domain: "homelab.local" # CHANGE TO YOUR DOMAIN NAME
+admin_user: "sysadmin"
+dns_servers:
+  - "10.0.0.245"
+  - "1.1.1.1"
 
 # Application Feature Flags
 enable_nextcloud: false
 enable_mealie: false
-enable_jellyfin_stack: false
+enable_jellyfin_stack: true
 
 # Subdomains
 nextcloud_subdomain: "cloud"
@@ -18,7 +22,8 @@ wizarr_subdomain: "join"
 # Docker/User config
 puid: 1000
 pgid: 1000
-docker_config_path: "/home/sysadmin/docker_configs"
+docker_project_name: "homelab"
+docker_config_path: "/home/{{ admin_user }}/docker_configs"
 
 # Storage configurations
 storage_root: "/storage"
@@ -28,7 +33,7 @@ disk_1_source: "/dev/sdb"
 disk_2_source: "/dev/sdc"
 
 # Service configurations
-vpn_region: "CA Vancouver"
+vpn_region: "CA Vancouver" # May need to change if you encounter connectivity issues.
 pihole_web_port: 8080
 nextcloud_web_port: 8081
 mealie_web_port: 9000
@@ -42,8 +47,7 @@ wizarr_port: 5690
 newtarr_port: 9705
 bazarr_port: 6767
 
-# Mappings (linking secrets to clean names)
-# These will look for the variables inside your encrypted vault file
+# Vault Secrets
 pihole_password: "{{ vault_pihole_password | mandatory('Set vault_pihole_password in your vault file.') }}"
 pia_user: "{{ vault_pia_user | mandatory('Set vault_pia_user in your vault file.') }}"
 pia_pass: "{{ vault_pia_pass | mandatory('Set vault_pia_pass in your vault file.') }}"

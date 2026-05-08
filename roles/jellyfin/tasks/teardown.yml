@@ -1,0 +1,15 @@
+---
+- name: Check if Jellyfin Compose directory exists
+  ansible.builtin.stat:
+    path: "{{ docker_config_path }}/jellyfin-stack"
+  register: jellyfin_dir
+
+- name: Tear down Jellyfin Stack via Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/jellyfin-stack"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}"
+    state: absent
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+  when: jellyfin_dir.stat.exists

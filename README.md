@@ -3,7 +3,7 @@
 A modular, layered Ansible project to deploy a complete media and home automation stack on a Debian-based server.
 
 ## 🏗 Architecture & Layer Breakdown
-This project uses a modular **Layered Deployment** strategy. Each layer is a standalone playbook that builds upon the previous one.
+This project uses a modular **Role-based** deployment strategy. Each "layer" is an Ansible Role orchestrated by `main.yml`.
 
 <details>
 <summary><b>[Layer 0] Storage</b></summary>
@@ -94,18 +94,22 @@ This project uses a modular **Layered Deployment** strategy. Each layer is a sta
 - A fresh install of **Debian** (Tested with **Trixie**).
 - SSH access configured.
 - `ansible` installed on your control machine.
+- Install required collections:
+  ```bash
+  ansible-galaxy collection install -r requirements.yml
+  ```
 
 ### 2. Configure Variables
-1. Copy the secret template:
+1. **Inventory**: Update the `inventory` file with your server's IP address.
+2. **Secrets**: Copy the secret template and encrypt it:
    ```bash
    cp group_vars/all/vault.yml.example group_vars/all/vault.yml
+   ansible-vault encrypt group_vars/all/vault.yml
    ```
-2. Encrypt your secrets with Ansible Vault:
-   ```bash
-   ansible-vault create group_vars/all/vault.yml
-   ```
-   *(Paste the contents of the example file and add your real credentials).*
-3. Update `group_vars/all/vars.yml` with your preferred Timezone, Paths, and Ports.
+   *(Then use `ansible-vault edit group_vars/all/vault.yml` to add your real credentials).*
+3. **Hardware & Paths**: Update `group_vars/all/vars.yml`. 
+   > ⚠️ **IMPORTANT**: Review the **Storage configurations** section carefully. Ensure `disk_1_source` and `disk_2_source` match your actual hardware IDs (e.g., `/dev/sdb`) before running the storage role, as it may format these disks.
+
 
 ### 3. Deploy
 To deploy the entire stack:
@@ -113,24 +117,28 @@ To deploy the entire stack:
 ansible-playbook main.yml --ask-vault-pass -K
 ```
 
-To deploy a specific layer:
+To deploy a specific layer (e.g., Jellyfin):
 ```bash
-ansible-playbook 9_jellyfin.yml --ask-vault-pass -K
+ansible-playbook main.yml --tags jellyfin --ask-vault-pass -K
 ```
 
 ## 🔐 Security & Variable Management
-This project follows the **"Ansible Way"**:
 - **Centralization**: All configurations live in `group_vars/all/vars.yml`.
 - **Encryption**: Sensitive data (PIA passwords, etc.) is stored in an encrypted `vault.yml` file using **Ansible Vault**.
-- **Smoke Tests**: Every layer includes automated health checks to verify service availability before proceeding.
+- **Modernization**: Uses Fully Qualified Collection Names (FQCN) and dynamic fact detection for cross-platform compatibility.
 
-## 🛠 Maintenance
+## 🛠 Maintenance & Uninstallation
 - **View Status**: Use `lazydocker` for container monitoring and `btop` for system performance.
 - **Edit Secrets**: `ansible-vault edit group_vars/all/vault.yml`
+- **Soft Teardown**: To remove a service but keep its data, set its `enable_*` flag to `false` in `vars.yml` and run `main.yml`.
+- **Hard Purge**: To permanently delete a service's persistent data, run:
+  ```bash
+  ansible-playbook purge_data.yml
+  ```
+  *(This will prompt you for the service name and a confirmation).*
 - **Update Stack**: Simply pull the latest changes and re-run the `main.yml` playbook.
 
 ---
 
 ## ⚖️ Disclaimer
 This project is for **educational purposes only**. It is intended for managing personal media backups and home automation. The author does not condone or encourage any form of digital piracy or the illegal distribution of copyrighted material.
-

@@ -4,7 +4,7 @@ PasswordAuthentication no
 PermitEmptyPasswords no
 PermitRootLogin no
 KbdInteractiveAuthentication no
-AllowUsers {{ allowed_users | default('sysadmin ansible') }}
+AllowUsers {{ allowed_users | default(admin_user ~ ' ansible') }}
 StrictModes yes
 MaxAuthTries 3
 LoginGraceTime 30

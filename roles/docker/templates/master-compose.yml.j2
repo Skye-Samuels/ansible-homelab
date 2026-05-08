@@ -1,0 +1,18 @@
+# Master Docker Compose Orchestrator
+# This file is for manual sysadmin management.
+# It ties all enabled services together via the 'include' directive.
+
+name: "{{ docker_project_name }}"
+
+include:
+  - caddy/docker-compose.yml
+  - pihole/docker-compose.yml
+{% if (enable_nextcloud | default(false) | bool) %}
+  - nextcloud/docker-compose.yml
+{% endif %}
+{% if (enable_mealie | default(false) | bool) %}
+  - mealie/docker-compose.yml
+{% endif %}
+{% if (enable_jellyfin_stack | default(false) | bool) %}
+  - jellyfin-stack/docker-compose.yml
+{% endif %}

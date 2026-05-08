@@ -1,0 +1,28 @@
+services:
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:latest
+    container_name: mealie
+    restart: always
+    ports:
+      - "127.0.0.1:{{ mealie_web_port }}:9000"
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+    volumes:
+      - "{{ storage_root }}/mealie:/app/data/"
+    networks:
+      - caddy_net
+    environment:
+      PUID: "{{ puid | string }}"
+      PGID: "{{ pgid | string }}"
+      TZ: "{{ timezone }}"
+      ALLOW_SIGNUP: "true"
+      MAX_BODY_SIZE: "20M"
+    labels:
+      caddy: "{{ mealie_subdomain }}.{{ domain }}"
+      caddy.reverse_proxy: "{{ '{{' }} upstreams 9000 {{ '}}' }}"
+
+networks:
+  caddy_net:
+    external: true

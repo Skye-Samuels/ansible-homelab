@@ -1,31 +1,45 @@
 ---
+- name: "Deploy Homelab Stack"
+  hosts: all
+  become: true
 
-- name: Layer 0 - Storage Emulation
-  import_playbook: 0_storage.yml
+  roles:
+    - role: storage
+      tags: storage
 
-- name: Layer 1 - Base System Setup
-  import_playbook: 1_base.yml
+    - role: base
+      tags: base
 
-- name: Layer 2 - Networking & DNS
-  import_playbook: 2_networking.yml
+    - role: networking
+      tags: networking
 
-- name: Layer 3 - Security Hardening
-  import_playbook: 3_security.yml
+    - role: security
+      tags: security
 
-- name: Layer 4 - Docker
-  import_playbook: 4_docker.yml
+    - role: docker
+      tags: docker
 
-- name: Layer 5 - Deploy Caddy Reverse Proxy
-  import_playbook: 5_caddy.yml
+    - role: caddy
+      tags: caddy
 
-- name: Layer 6 - Deploy Pi-hole DNS
-  import_playbook: 6_pihole.yml
+    - role: pihole
+      tags: pihole
 
-- name: Layer 7 - Deploy Nextcloud AIO
-  import_playbook: 7_nextcloud.yml
+    - role: nextcloud
+      tags: nextcloud
 
-- name: Layer 8 - Deploy Mealie
-  import_playbook: 8_mealie.yml
+    - role: mealie
+      tags: mealie
 
-- name: Layer 9 - Deploy Jellyfin Stack
-  import_playbook: 9_jellyfin.yml
+    - role: jellyfin
+      tags: jellyfin
+
+  post_tasks:
+    - name: Deploy Master Docker Compose Orchestrator
+      ansible.builtin.template:
+        src: roles/docker/templates/master-compose.yml.j2
+        dest: "{{ docker_config_path }}/docker-compose.yml"
+        owner: "{{ admin_user }}"
+        group: "{{ admin_user }}"
+        mode: '0644'
+      tags: always

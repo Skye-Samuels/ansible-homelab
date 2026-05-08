@@ -1,0 +1,71 @@
+---
+- name: "Hard Purge Service Data"
+  hosts: all
+  become: true
+
+  vars_prompt:
+    - name: target_service
+      prompt: "Which service data do you want to PERMANENTLY delete? (nextcloud,
+        mealie, jellyfin)"
+      private: false
+
+    - name: confirm_purge
+      prompt: "Are you sure you want to delete all persistent data? This cannot be
+        undone! (yes/no)"
+      private: false
+
+  tasks:
+    - name: Fail if confirmation not given
+      ansible.builtin.fail:
+        msg: "Purge aborted. You must type 'yes' to confirm."
+      when: confirm_purge | lower != 'yes'
+
+    - name: Set paths for Jellyfin
+      ansible.builtin.set_fact:
+        purge_paths:
+          - "{{ base_storage_path }}"
+          - "{{ docker_config_path }}/jellyfin-stack"
+          - "{{ docker_config_path }}/gluetun"
+          - "{{ docker_config_path }}/qbittorrent"
+          - "{{ docker_config_path }}/prowlarr"
+          - "{{ docker_config_path }}/radarr"
+          - "{{ docker_config_path }}/sonarr"
+          - "{{ docker_config_path }}/jellyfin"
+          - "{{ docker_config_path }}/jellyseerr"
+          - "{{ docker_config_path }}/wizarr"
+          - "{{ docker_config_path }}/newtarr"
+          - "{{ docker_config_path }}/bazarr"
+      when: target_service | lower == 'jellyfin'
+
+    - name: Set path for Nextcloud
+      ansible.builtin.set_fact:
+        purge_paths: ["{{ storage_root }}/nextcloud"]
+      when: target_service | lower == 'nextcloud'
+
+    - name: Set path for Mealie
+      ansible.builtin.set_fact:
+        purge_paths: ["{{ storage_root }}/mealie"]
+      when: target_service | lower == 'mealie'
+
+    - name: Verify path variable is set
+      ansible.builtin.fail:
+        msg: "Invalid service name: {{ target_service }}. Use 'nextcloud', 'mealie', or
+          'jellyfin'."
+      when: purge_paths is not defined
+
+    - name: PERMANENTLY remove data directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop: "{{ purge_paths }}"
+
+    - name: PERMANENTLY remove Nextcloud AIO volume
+      community.docker.docker_volume:
+        name: nextcloud_aio_mastercontainer
+        state: absent
+      when: target_service | lower == 'nextcloud'
+
+    - name: Final Notification
+      ansible.builtin.debug:
+        msg: "Persistent data and configs for {{ target_service }} have been permanently
+          removed."

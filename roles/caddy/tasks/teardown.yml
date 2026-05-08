@@ -1,0 +1,15 @@
+---
+- name: Check if Caddy directory exists
+  ansible.builtin.stat:
+    path: "{{ docker_config_path }}/caddy"
+  register: caddy_dir
+
+- name: Tear down Caddy Stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/caddy"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}"
+    state: absent
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+  when: caddy_dir.stat.exists

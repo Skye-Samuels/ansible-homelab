@@ -1,0 +1,3 @@
+---
+- name: Route to Deploy or Teardown
+  ansible.builtin.include_tasks: "{{ 'deploy.yml' if (enable_jellyfin_stack | default(false) | bool) else 'teardown.yml' }}"

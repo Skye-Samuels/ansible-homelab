@@ -1,0 +1,15 @@
+---
+- name: Check if Mealie directory exists
+  ansible.builtin.stat:
+    path: "{{ docker_config_path }}/mealie"
+  register: mealie_dir
+
+- name: Tear down Mealie Stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/mealie"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}"
+    state: absent
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+  when: mealie_dir.stat.exists

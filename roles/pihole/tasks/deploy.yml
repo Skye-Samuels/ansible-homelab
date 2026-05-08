@@ -1,0 +1,57 @@
+---
+- name: Get info on existing Pi-hole container
+  community.docker.docker_container_info:
+    name: pihole
+  register: pihole_info
+
+- name: Ensure old or conflicting Pi-hole container is removed
+  community.docker.docker_container:
+    name: pihole
+    state: absent
+  when: 
+    - pihole_info.exists
+    - pihole_info.container.Config.Labels['com.docker.compose.project'] | default('') != docker_project_name
+
+- name: Ensure Pi-hole config directory exists
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ docker_config_path }}/pihole"
+    - /opt/pihole/etc-pihole
+    - /opt/pihole/etc-dnsmasq.d
+
+- name: Deploy Pi-hole Compose Template
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_config_path }}/pihole/docker-compose.yml"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0644'
+
+- name: Start Pi-hole Stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/pihole"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}"
+    state: present
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+
+- name: Wait for Pi-hole Web UI to be ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ pihole_web_port }}/admin/"
+    status_code: 200
+  register: pihole_ui_check
+  until: pihole_ui_check.status == 200
+  retries: 10
+  delay: 5
+
+- name: Verify Pi-hole DNS resolution (local)
+  ansible.builtin.command: "dig @127.0.0.1 -p 53 google.com +short"
+  register: dns_check
+  changed_when: false
+  until: dns_check.stdout != ""
+  retries: 5
+  delay: 2

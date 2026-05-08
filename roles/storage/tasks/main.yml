@@ -1,0 +1,59 @@
+---
+- name: Install MergerFS
+  ansible.builtin.apt:
+    name: mergerfs
+    state: present
+    update_cache: yes
+
+- name: Create mount points
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /mnt/disk1
+    - /mnt/disk2
+    - "{{ storage_root }}"
+  changed_when: false 
+
+- name: Format disks
+  community.general.filesystem:
+    fstype: ext4
+    dev: "{{ item }}"
+  loop:
+    - "{{ disk_1_source }}"
+    - "{{ disk_2_source }}"
+  when: format_disks | bool 
+
+- name: Mount physical disks
+  ansible.posix.mount:
+    path: "/mnt/{{ item.name }}"
+    src: "{{ item.src }}"
+    fstype: ext4
+    state: mounted
+  loop:
+    - { name: 'disk1', src: "{{ disk_1_source }}" }
+    - { name: 'disk2', src: "{{ disk_2_source }}" }
+
+- name: Create MergerFS pool
+  ansible.posix.mount:
+    path: "{{ storage_root }}"
+    src: "/mnt/disk1:/mnt/disk2"
+    fstype: fuse.mergerfs
+    opts: "defaults,allow_other,use_ino,cache.files=off,dropcacheonclose=true,category.create=mfs"
+    state: mounted
+
+- name: Fix ownership on the MOUNTED pool
+  ansible.builtin.file:
+    path: "{{ storage_root }}"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0775'
+    state: directory
+  changed_when: false
+
+- name: Verify MergerFS pool is active
+  ansible.builtin.command: mountpoint -q "{{ storage_root }}"
+  changed_when: false
+  register: mount_check
+  failed_when: mount_check.rc != 0

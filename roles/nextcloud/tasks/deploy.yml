@@ -1,0 +1,72 @@
+---
+- name: Get info on existing Nextcloud container
+  community.docker.docker_container_info:
+    name: nextcloud-aio-mastercontainer
+  register: nextcloud_info
+
+- name: Ensure old or conflicting Nextcloud container is removed
+  community.docker.docker_container:
+    name: nextcloud-aio-mastercontainer
+    state: absent
+  when: 
+    - nextcloud_info.exists
+    - nextcloud_info.container.Config.Labels['com.docker.compose.project'] | default('') != docker_project_name
+
+- name: Ensure Nextcloud config directory exists
+  ansible.builtin.file:
+    path: "{{ docker_config_path }}/nextcloud"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0775'
+
+- name: Create Nextcloud storage directory
+  ansible.builtin.file:
+    path: "{{ storage_root }}/nextcloud"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0775'
+
+- name: Create the required AIO named volume
+  community.docker.docker_volume:
+    name: nextcloud_aio_mastercontainer
+    state: present
+
+- name: Deploy Nextcloud Compose Template
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_config_path }}/nextcloud/docker-compose.yml"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0644'
+
+- name: Start Nextcloud Stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/nextcloud"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}"
+    state: present
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+
+- name: Wait for Nextcloud AIO to be ready
+  ansible.builtin.uri:
+    url: "https://127.0.0.1:{{ nextcloud_web_port }}/"
+    status_code: [200, 302]
+    validate_certs: no
+  register: ncaio_check
+  until: ncaio_check.status in [200, 302]
+  retries: 20
+  delay: 5
+
+- name: Ensure Apache is connected to caddy_net
+  community.docker.docker_network:
+    name: caddy_net
+    connected:
+      - nextcloud-aio-apache
+    appends: yes
+  register: network_result
+  until: network_result is not failed
+  retries: 40
+  delay: 5

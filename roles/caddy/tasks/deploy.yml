@@ -1,0 +1,47 @@
+---
+- name: Get info on existing Caddy container
+  community.docker.docker_container_info:
+    name: caddy
+  register: caddy_info
+
+- name: Ensure old or conflicting Caddy container is removed
+  community.docker.docker_container:
+    name: caddy
+    state: absent
+  when: 
+    - caddy_info.exists
+    - caddy_info.container.Config.Labels['com.docker.compose.project'] | default('') != docker_project_name
+
+- name: Ensure Caddy config directory exists
+  ansible.builtin.file:
+    path: "{{ docker_config_path }}/caddy"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0775'
+
+- name: Deploy Caddy Compose Template
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_config_path }}/caddy/docker-compose.yml"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0644'
+
+- name: Start Caddy Stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/caddy"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}"
+    state: present
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+
+- name: Update UFW rules for Caddy
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: "{{ 'udp' if item == '443' else 'tcp' }}"
+  loop:
+    - "80"
+    - "443"

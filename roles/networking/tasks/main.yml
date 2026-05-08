@@ -1,0 +1,35 @@
+---
+- name: Ensure temporary DNS resolution for bootstrap
+  ansible.builtin.lineinfile:
+    path: /etc/resolv.conf
+    line: "nameserver 1.1.1.1"
+    state: present
+  changed_when: false
+  ignore_errors: true
+
+- name: Install systemd-resolved
+  ansible.builtin.apt:
+    name: systemd-resolved
+    state: present
+    update_cache: false
+
+- name: Disable DNSStubListener to free up Port 53
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/resolved.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^#?DNS=', line: 'DNS={{ dns_servers | join(" ") }}' }
+    - { regexp: '^#?DNSStubListener=', line: 'DNSStubListener=no' }
+    - { regexp: '^#?LLMNR=', line: 'LLMNR=no' }
+  notify: Restart resolved
+
+- name: Use the static resolv.conf (Required when Stub is off)
+  ansible.builtin.file:
+    src: /run/systemd/resolve/resolv.conf
+    dest: /etc/resolv.conf
+    state: link
+    force: true
+
+- name: Flush handlers to restart resolved immediately
+  ansible.builtin.meta: flush_handlers

@@ -1,0 +1,15 @@
+---
+- name: Check if Nextcloud directory exists
+  ansible.builtin.stat:
+    path: "{{ docker_config_path }}/nextcloud"
+  register: nextcloud_dir
+
+- name: Tear down Nextcloud Stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/nextcloud"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}"
+    state: absent
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+  when: nextcloud_dir.stat.exists

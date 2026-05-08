@@ -1,0 +1,31 @@
+services:
+  nextcloud-aio-mastercontainer:
+    image: nextcloud/all-in-one:latest
+    container_name: nextcloud-aio-mastercontainer
+    restart: always
+    ports:
+      - "127.0.0.1:{{ nextcloud_web_port }}:8080"
+    networks:
+      - caddy_net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
+      - "{{ storage_root }}/nextcloud:/mnt/ncdata"
+    environment:
+      NEXTCLOUD_DATADIR: "/mnt/ncdata"
+      APACHE_PORT: "11000"
+      APACHE_IP_BINDING: "0.0.0.0"
+      NEXTCLOUD_MOUNT: "{{ storage_root }}/nextcloud"
+      SKIP_DOMAIN_VALIDATION: "true"
+      AIO_NETWORK: "caddy_net"
+    labels:
+      caddy: "{{ nextcloud_subdomain }}.{{ domain }}"
+      caddy.reverse_proxy: "nextcloud-aio-apache:11000"
+
+networks:
+  caddy_net:
+    external: true
+
+volumes:
+  nextcloud_aio_mastercontainer:
+    external: true
