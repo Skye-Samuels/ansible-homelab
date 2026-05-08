@@ -3,6 +3,11 @@ hostname_desired: "homelab"
 timezone: "America/Los_Angeles"
 domain: "homelab.local"
 
+# Application Feature Flags
+enable_nextcloud: false
+enable_mealie: false
+enable_jellyfin_stack: false
+
 # Subdomains
 nextcloud_subdomain: "cloud"
 mealie_subdomain: "mealie"

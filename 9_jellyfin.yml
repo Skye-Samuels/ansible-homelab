@@ -4,6 +4,15 @@
   become: true
 
   tasks:
+    - name: Notify that Jellyfin Stack is disabled
+      debug:
+        msg: "Skipping Layer 9: Jellyfin Stack is disabled in vars.yml"
+      when: not (enable_jellyfin_stack | default(true) | bool)
+
+    - name: Check if Jellyfin Stack is enabled
+      meta: end_play
+      when: not (enable_jellyfin_stack | default(true) | bool)
+
     - name: Ensure directory structure exists
       file:
         path: "{{ item }}"

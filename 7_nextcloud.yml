@@ -4,6 +4,15 @@
   become: true
 
   tasks:
+    - name: Notify that Nextcloud is disabled
+      debug:
+        msg: "Skipping Layer 7: Nextcloud is disabled in vars.yml"
+      when: not (enable_nextcloud | default(true) | bool)
+
+    - name: Check if Nextcloud is enabled
+      meta: end_play
+      when: not (enable_nextcloud | default(true) | bool)
+
     - name: Create Nextcloud storage directory
       file:
         path: "{{ storage_root }}/nextcloud"
