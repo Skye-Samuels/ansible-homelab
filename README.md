@@ -3,10 +3,13 @@
 A modular, layered Ansible project to deploy a complete media and home automation stack on a Debian-based server.
 
 ## 🏗 Architecture & Layer Breakdown
-This project uses a modular **Role-based** deployment strategy. Each layer is an Ansible Role orchestrated by `main.yml`.
+This project uses a modular **Role-based** deployment strategy. Each role represents a layer in the stack, orchestrated by `main.yml`.
+
+### 🛠 Core Infrastructure (Always Deployed)
+These roles form the foundation of your server.
 
 <details>
-<summary><b>[Layer 0] Storage</b></summary>
+<summary><b>Storage</b></summary>
 
 - **Purpose:** Prepares the physical storage array.
 - **Technologies:** MergerFS, `ext4`, `mount`.
@@ -14,21 +17,21 @@ This project uses a modular **Role-based** deployment strategy. Each layer is an
 </details>
 
 <details>
-<summary><b>[Layer 1] Base System</b></summary>
+<summary><b>Base System</b></summary>
 
 - **Purpose:** Initial server hardening and utility setup.
 - **Details:** Sets hostname, configures Timezone, updates APT cache, and installs core admin tools (`neovim`, `btop`, `htop`, `fastfetch`).
 </details>
 
 <details>
-<summary><b>[Layer 2] Networking & DNS</b></summary>
+<summary><b>Networking & DNS</b></summary>
 
 - **Purpose:** Ensures stable connectivity.
 - **Details:** Configures static IP settings (if defined) and ensures DNS persistence.
 </details>
 
 <details>
-<summary><b>[Layer 3] Security</b></summary>
+<summary><b>Security</b></summary>
 
 - **Purpose:** Perimeter and access security.
 - **Technologies:** UFW (Uncomplicated Firewall), Fail2Ban.
@@ -36,14 +39,14 @@ This project uses a modular **Role-based** deployment strategy. Each layer is an
 </details>
 
 <details>
-<summary><b>[Layer 4] Docker Engine</b></summary>
+<summary><b>Docker Engine</b></summary>
 
 - **Purpose:** The containerization foundation.
 - **Details:** Installs Docker Engine, Docker Compose, and **LazyDocker** for terminal-based container management.
 </details>
 
 <details>
-<summary><b>[Layer 5] Caddy Reverse Proxy</b></summary>
+<summary><b>Caddy Reverse Proxy</b></summary>
 
 - **Purpose:** Edge routing and SSL management.
 - **Container:** `lucaslorentz/caddy-docker-proxy`.
@@ -51,15 +54,18 @@ This project uses a modular **Role-based** deployment strategy. Each layer is an
 </details>
 
 <details>
-<summary><b>[Layer 6] Pi-hole</b></summary>
+<summary><b>Pi-hole</b></summary>
 
 - **Purpose:** Network-wide ad and tracker blocking.
 - **Container:** `pihole/pihole`.
 - **Details:** Deploys Pi-hole with a customized web port and automated DNS health checks.
 </details>
 
+### 📦 Applications
+These services are toggled via `enable_*` flags in `vars.yml`.
+
 <details>
-<summary><b>[Layer 7] Nextcloud AIO</b></summary>
+<summary><b>Nextcloud AIO</b></summary>
 
 - **Purpose:** Private cloud and productivity suite.
 - **Container:** `nextcloud/all-in-one`.
@@ -67,7 +73,7 @@ This project uses a modular **Role-based** deployment strategy. Each layer is an
 </details>
 
 <details>
-<summary><b>[Layer 8] Mealie</b></summary>
+<summary><b>Mealie</b></summary>
 
 - **Purpose:** Recipe and meal management.
 - **Container:** `hkotel/mealie`.
@@ -75,7 +81,7 @@ This project uses a modular **Role-based** deployment strategy. Each layer is an
 </details>
 
 <details>
-<summary><b>[Layer 9] Jellyfin Stack</b></summary>
+<summary><b>Jellyfin Stack</b></summary>
 
 - **Purpose:** Fully automated media management and streaming.
 - **Containers:** 
