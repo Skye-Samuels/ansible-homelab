@@ -4,7 +4,7 @@ This guide provides a comprehensive, step-by-step walkthrough for users starting
 
 ## 1. Debian Installation
 - **ISO**: I recommend the Debian 13 (trixie) ISO as that is what I have tested it on.
-- **Base System**: During installation, select only "Standard System Utilities" and "SSH Server." A GUI is not recommended for this server stack.
+- **Base System**: During installation, select only Standard System Utilities and SSH Server. A GUI is not recommended for this server stack.
 
 ## 2. Server Account Setup
 Before configuring SSH, you must create the necessary accounts on your server. SSH into your server as `root` and run the following:
