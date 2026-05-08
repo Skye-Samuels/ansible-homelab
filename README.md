@@ -96,13 +96,20 @@ These services are toggled via `enable_*` flags in `vars.yml`.
 
 ## Quick Start
 
-Follow these steps to get your homelab up and running.
+Follow these steps to get your homelab up and running. For a complete walkthrough including initial server setup and detailed application configuration, refer to the [Full Setup Guide](docs/FULL_SETUP.md).
 
 ### Step 1: Prepare your Control Machine
 Ensure you have Ansible installed, then install the required dependencies:
+
 ```bash
 ansible-galaxy collection install -r requirements.yml
 ```
+
+Before proceeding, verify that your control machine can connect to the server:
+```bash
+ansible all -m ping
+```
+If the ping fails, refer to the [SSH Configuration](docs/FULL_SETUP.md#2-initial-ssh-configuration) guide for detailed setup instructions.
 
 ### Step 2: Configure Your Environment
 You need to customize three main files before deploying:
@@ -136,12 +143,15 @@ To deploy or update a specific service:
 ansible-playbook main.yml --tags <service_name> --ask-vault-pass -K
 ```
 
+### Step 4: Post-Deployment Configuration
+Once your containers are running, you must perform manual setup for some services (e.g., configuring the Jellyfin stack components, libraries, and Nextcloud admin). Instructions for these steps are located in the [Full Setup Guide](docs/FULL_SETUP.md#6-application-configuration).
+
 ---
 
 ## Security & Variable Management
-- **Centralization**: All configurations live in `group_vars/all/vars.yml`.
-- **Encryption**: Sensitive data (PIA passwords, etc.) is stored in an encrypted `vault.yml` file using **Ansible Vault**.
-- **Modernization**: Uses Fully Qualified Collection Names (FQCN) and dynamic fact detection for cross-platform compatibility.
+- **Centralization**: All configuration settings live in `group_vars/all/vars.yml`.
+- **Encryption**: Sensitive data (passwords, VPN credentials) is protected using **Ansible Vault**.
+- **Port Security**: Internal management boards are restricted to `localhost` and require an SSH tunnel for access.
 
 ## Maintenance & Uninstallation
 - **View Status**: Use `lazydocker` for container monitoring and `btop` for system performance.
