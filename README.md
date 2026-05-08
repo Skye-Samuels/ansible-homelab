@@ -8,7 +8,7 @@ This project uses a modular **Layered Deployment** strategy. Each layer is a sta
 <details>
 <summary><b>[Layer 0] Storage</b></summary>
 
-**Purpose:** Prepares the physical storage array.
+- **Purpose:** Prepares the physical storage array.
 - **Technologies:** MergerFS, `ext4`, `mount`.
 - **Details:** Formats secondary drives, creates mount points, and establishes a pooled `storage_root` using MergerFS for transparent disk spanning.
 </details>
@@ -16,21 +16,21 @@ This project uses a modular **Layered Deployment** strategy. Each layer is a sta
 <details>
 <summary><b>[Layer 1] Base System</b></summary>
 
-**Purpose:** Initial server hardening and utility setup.
+- **Purpose:** Initial server hardening and utility setup.
 - **Details:** Sets hostname, configures Timezone, updates APT cache, and installs core admin tools (`neovim`, `btop`, `htop`, `fastfetch`).
 </details>
 
 <details>
 <summary><b>[Layer 2] Networking & DNS</b></summary>
 
-**Purpose:** Ensures stable connectivity.
+- **Purpose:** Ensures stable connectivity.
 - **Details:** Configures static IP settings (if defined) and ensures DNS persistence.
 </details>
 
 <details>
 <summary><b>[Layer 3] Security</b></summary>
 
-**Purpose:** Perimeter and access security.
+- **Purpose:** Perimeter and access security.
 - **Technologies:** UFW (Uncomplicated Firewall), Fail2Ban.
 - **Details:** Closes all ports except essential ones (SSH, HTTP/S), configures Fail2Ban to prevent brute-force attacks, and hardens SSH config.
 </details>
@@ -38,14 +38,14 @@ This project uses a modular **Layered Deployment** strategy. Each layer is a sta
 <details>
 <summary><b>[Layer 4] Docker Engine</b></summary>
 
-**Purpose:** The containerization foundation.
+- **Purpose:** The containerization foundation.
 - **Details:** Installs Docker Engine, Docker Compose, and **LazyDocker** for terminal-based container management.
 </details>
 
 <details>
 <summary><b>[Layer 5] Caddy Reverse Proxy</b></summary>
 
-**Purpose:** Edge routing and SSL management.
+- **Purpose:** Edge routing and SSL management.
 - **Container:** `lucaslorentz/caddy-docker-proxy`.
 - **Details:** Automatically discovers other containers via Docker labels and provisions Let's Encrypt / ZeroSSL certificates.
 </details>
@@ -53,7 +53,7 @@ This project uses a modular **Layered Deployment** strategy. Each layer is a sta
 <details>
 <summary><b>[Layer 6] Pi-hole</b></summary>
 
-**Purpose:** Network-wide ad and tracker blocking.
+- **Purpose:** Network-wide ad and tracker blocking.
 - **Container:** `pihole/pihole`.
 - **Details:** Deploys Pi-hole with a customized web port and automated DNS health checks.
 </details>
@@ -61,7 +61,7 @@ This project uses a modular **Layered Deployment** strategy. Each layer is a sta
 <details>
 <summary><b>[Layer 7] Nextcloud AIO</b></summary>
 
-**Purpose:** Private cloud and productivity suite.
+- **Purpose:** Private cloud and productivity suite.
 - **Container:** `nextcloud/all-in-one`.
 - **Details:** Deploys the Nextcloud AIO mastercontainer, enabling a complete personal cloud with high-performance backend.
 </details>
@@ -69,7 +69,7 @@ This project uses a modular **Layered Deployment** strategy. Each layer is a sta
 <details>
 <summary><b>[Layer 8] Mealie</b></summary>
 
-**Purpose:** Recipe and meal management.
+- **Purpose:** Recipe and meal management.
 - **Container:** `hkotel/mealie`.
 - **Details:** Provides a centralized database for recipes with a clean, mobile-friendly web UI.
 </details>
@@ -77,7 +77,7 @@ This project uses a modular **Layered Deployment** strategy. Each layer is a sta
 <details>
 <summary><b>[Layer 9] Jellyfin Stack</b></summary>
 
-**Purpose:** Fully automated media management and streaming.
+- **Purpose:** Fully automated media management and streaming.
 - **Containers:** 
   - **Networking:** `gluetun` (VPN Gateway for the stack).
   - **Streaming:** `jellyfin`.
