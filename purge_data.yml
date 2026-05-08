@@ -1,4 +1,12 @@
 ---
+# ==============================================================================
+# PURGE DATA PLAYBOOK
+# ==============================================================================
+# Usage: ansible-playbook purge_data.yml --ask-vault-pass -K
+#
+# This playbook is used to PERMANENTLY delete persistent data for specific
+# services. Use with extreme caution.
+# ==============================================================================
 - name: "Hard Purge Service Data"
   hosts: all
   become: true

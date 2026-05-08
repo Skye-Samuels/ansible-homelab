@@ -1,4 +1,10 @@
 ---
+# ==============================================================================
+# MAIN HOMELAB DEPLOYMENT PLAYBOOK
+# ==============================================================================
+# This playbook orchestrates the entire stack. You can run individual layers
+# using tags (e.g., --tags storage).
+# ==============================================================================
 - name: "Deploy Homelab Stack"
   hosts: all
   become: true

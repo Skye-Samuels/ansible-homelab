@@ -1,39 +1,56 @@
-# General configuration for all hosts
+###############################################################################
+# SYSTEM IDENTITY & NETWORK
+###############################################################################
 hostname_desired: "homelab"
-timezone: "America/Los_Angeles" # CHANGE TO YOUR TIMEZONE
-domain: "homelab.local" # CHANGE TO YOUR DOMAIN NAME
-admin_user: "sysadmin"
+timezone: "America/Los_Angeles" # CHANGE TO YOUR TIMEZONE (e.g., UTC)
+domain: "homelab.local"         # CHANGE TO YOUR DOMAIN NAME
+admin_user: "sysadmin"          # The primary user account on the server
+
+# DNS settings for the system (Used before Pi-hole is up)
 dns_servers:
   - "10.0.0.245"
   - "1.1.1.1"
 
-# Application Feature Flags
+###############################################################################
+# APPLICATION FEATURE FLAGS
+# Set to 'true' to deploy, 'false' to skip or stop the service
+###############################################################################
 enable_nextcloud: false
 enable_mealie: false
 enable_jellyfin_stack: true
 
-# Subdomains
+###############################################################################
+# SUBDOMAINS
+# Used by Caddy for reverse proxy routing (e.g., cloud.example.com)
+###############################################################################
 nextcloud_subdomain: "cloud"
 mealie_subdomain: "mealie"
 jellyfin_subdomain: "jellyfin"
 jellyseerr_subdomain: "request"
 wizarr_subdomain: "join"
 
-# Docker/User config
-puid: 1000
-pgid: 1000
+###############################################################################
+# DOCKER & USER CONFIG
+###############################################################################
+puid: 1000 # User ID for file ownership inside containers
+pgid: 1000 # Group ID for file ownership inside containers
 docker_project_name: "homelab"
 docker_config_path: "/home/{{ admin_user }}/docker_configs"
 
-# Storage configurations
+###############################################################################
+# STORAGE CONFIGURATIONS
+# ⚠️ CAUTION: 'format_disks: true' will WIPE the disks below on first run.
+###############################################################################
 storage_root: "/storage"
 base_storage_path: "{{ storage_root }}/jellyfin/data"
-format_disks: true
-disk_1_source: "/dev/sdb"
-disk_2_source: "/dev/sdc"
+format_disks: true            # Set to false after first successful run
+disk_1_source: "/dev/sdb"     # CHANGE TO YOUR DISK ID
+disk_2_source: "/dev/sdc"     # CHANGE TO YOUR DISK ID
 
-# Service configurations
-vpn_region: "CA Vancouver" # May need to change if you encounter connectivity issues.
+###############################################################################
+# SERVICE CONFIGURATIONS (Ports & VPN)
+###############################################################################
+vpn_region: "CA Vancouver" # For Gluetun/PIA VPN connection
 pihole_web_port: 8080
 nextcloud_web_port: 8081
 mealie_web_port: 9000
@@ -47,7 +64,10 @@ wizarr_port: 5690
 newtarr_port: 9705
 bazarr_port: 6767
 
-# Vault Secrets
+###############################################################################
+# VAULT SECRETS
+# These must be defined in your encrypted group_vars/all/vault.yml
+###############################################################################
 pihole_password: "{{ vault_pihole_password | mandatory('Set vault_pihole_password in your vault file.') }}"
 pia_user: "{{ vault_pia_user | mandatory('Set vault_pia_user in your vault file.') }}"
 pia_pass: "{{ vault_pia_pass | mandatory('Set vault_pia_pass in your vault file.') }}"

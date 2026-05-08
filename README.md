@@ -90,37 +90,44 @@ This project uses a modular **Role-based** deployment strategy. Each "layer" is 
 
 ## 🚀 Quick Start
 
-### 1. Prerequisites
-- A fresh install of **Debian** (Tested with **Trixie**).
-- SSH access configured.
-- `ansible` installed on your control machine.
-- Install required collections:
-  ```bash
-  ansible-galaxy collection install -r requirements.yml
-  ```
+Follow these steps to get your homelab up and running.
 
-### 2. Configure Variables
-1. **Inventory**: Update the `inventory` file with your server's IP address.
-2. **Secrets**: Copy the secret template and encrypt it:
-   ```bash
-   cp group_vars/all/vault.yml.example group_vars/all/vault.yml
-   ansible-vault encrypt group_vars/all/vault.yml
-   ```
-   *(Then use `ansible-vault edit group_vars/all/vault.yml` to add your real credentials).*
-3. **Hardware & Paths**: Update `group_vars/all/vars.yml`. 
-   > ⚠️ **IMPORTANT**: Review the **Storage configurations** section carefully. Ensure `disk_1_source` and `disk_2_source` match your actual hardware IDs (e.g., `/dev/sdb`) before running the storage role, as it may format these disks.
+### Step 1: Prepare your Control Machine
+Ensure you have Ansible installed, then install the required dependencies:
+```bash
+ansible-galaxy collection install -r requirements.yml
+```
 
+### Step 2: Configure Your Environment
+You need to customize three main files before deploying:
 
-### 3. Deploy
-To deploy the entire stack:
+1.  **Inventory**: Open the `inventory` file and replace the placeholder IP with your server's IP address.
+2.  **Secrets**:
+    ```bash
+    cp group_vars/all/vault.yml.example group_vars/all/vault.yml
+    ansible-vault encrypt group_vars/all/vault.yml
+    ```
+    *Use `ansible-vault edit group_vars/all/vault.yml` to add your real PIA and Pi-hole passwords.*
+3.  **Variables**: Open `group_vars/all/vars.yml` and review all settings.
+    *   **Timezone & Domain**: Look for the `CHANGE TO YOUR...` comments.
+    *   **Storage**: ⚠️ **IMPORTANT:** Verify `disk_1_source` and `disk_2_source`. The storage role will format these disks if `format_disks` is set to `true`.
+
+### Step 3: Deploy
+Run the playbook from the root of the project:
 ```bash
 ansible-playbook main.yml --ask-vault-pass -K
 ```
+**Flag Breakdown:**
+*   `--ask-vault-pass`: Prompts for your Ansible Vault password.
+*   `-K` (or `--ask-become-pass`): Prompts for your server's `sudo` password.
 
-To deploy a specific layer (e.g., Jellyfin):
-```bash
-ansible-playbook main.yml --tags jellyfin --ask-vault-pass -K
-```
+---
+
+## 🌐 Accessing Your Services
+Once the deployment finishes, your services will be available at:
+*   **Pi-hole**: `http://<your-ip>:8080/admin`
+*   **Services (via Caddy)**: `https://<subdomain>.<your-domain>`
+*   **Master Dashboard**: All containers can be managed via **LazyDocker** on the server.
 
 ## 🔐 Security & Variable Management
 - **Centralization**: All configurations live in `group_vars/all/vars.yml`.
