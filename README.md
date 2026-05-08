@@ -97,3 +97,9 @@ This project follows the **"Ansible Way"**:
 - **View Status**: Use `lazydocker` for container monitoring and `btop` for system performance.
 - **Edit Secrets**: `ansible-vault edit group_vars/all/vault.yml`
 - **Update Stack**: Simply pull the latest changes and re-run the `main.yml` playbook.
+
+---
+
+## ⚖️ Disclaimer
+This project is for **educational purposes only**. It is intended for managing personal media backups and home automation. The author does not condone or encourage any form of digital piracy or the illegal distribution of copyrighted material.
+
