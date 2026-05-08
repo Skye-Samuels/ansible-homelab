@@ -39,7 +39,7 @@ docker_config_path: "/home/{{ admin_user }}/docker_configs"
 
 ###############################################################################
 # STORAGE CONFIGURATIONS
-# ⚠️ CAUTION: 'format_disks: true' will WIPE the disks below on first run.
+# CAUTION: 'format_disks: true' will WIPE the disks below on first run.
 ###############################################################################
 storage_root: "/storage"
 base_storage_path: "{{ storage_root }}/jellyfin/data"

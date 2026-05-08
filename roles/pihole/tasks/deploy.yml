@@ -55,3 +55,12 @@
   until: dns_check.stdout != ""
   retries: 5
   delay: 2
+
+- name: Update UFW rules for Pi-hole
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  loop:
+    - { port: "53", proto: "tcp" }
+    - { port: "53", proto: "udp" }

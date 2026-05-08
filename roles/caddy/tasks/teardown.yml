@@ -13,3 +13,13 @@
   environment:
     COMPOSE_IGNORE_ORPHANS: "true"
   when: caddy_dir.stat.exists
+
+- name: Remove UFW rules for Caddy
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: "{{ 'udp' if item == '443' else 'tcp' }}"
+    state: absent
+  loop:
+    - "80"
+    - "443"

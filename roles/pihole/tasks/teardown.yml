@@ -13,3 +13,13 @@
   environment:
     COMPOSE_IGNORE_ORPHANS: "true"
   when: pihole_dir.stat.exists
+
+- name: Remove UFW rules for Pi-hole
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    state: absent
+  loop:
+    - { port: "53", proto: "tcp" }
+    - { port: "53", proto: "udp" }

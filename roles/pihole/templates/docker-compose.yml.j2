@@ -8,8 +8,8 @@ services:
       FTLCONF_webserver_api_password: "{{ pihole_password }}"
       FTLCONF_dns_listeningMode: "all"
     ports:
-      - "127.0.0.1:53:53/tcp"
-      - "127.0.0.1:53:53/udp"
+      - "53:53/tcp"
+      - "53:53/udp"
       - "127.0.0.1:{{ pihole_web_port }}:80/tcp"
     volumes:
       - "/opt/pihole/etc-pihole:/etc/pihole"
