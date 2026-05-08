@@ -6,7 +6,7 @@ This guide provides a comprehensive, step-by-step walkthrough for users starting
 - **ISO**: I recommend the Debian 13 (trixie) ISO as that is what I have tested it on.
 - **Base System**: During installation, select only "Standard System Utilities" and "SSH Server." A GUI is not recommended for this server stack.
 
-## 2. Initial SSH & User Configuration
+## 2. SSH Configuration
 Before Ansible can connect, you must prepare the server for management.
 
 1.  **Create Ansible User**: SSH into your new server as root or your initial user and create the management account:
