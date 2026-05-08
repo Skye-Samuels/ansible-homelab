@@ -125,9 +125,18 @@ ansible-playbook main.yml --ask-vault-pass -K
 
 ## 🌐 Accessing Your Services
 Once the deployment finishes, your services will be available at:
-*   **Pi-hole**: `http://<your-ip>:8080/admin`
-*   **Services (via Caddy)**: `https://<subdomain>.<your-domain>`
-*   **Master Dashboard**: All containers can be managed via **LazyDocker** on the server.
+*   **Public Services (via Caddy)**: `https://<subdomain>.<your-domain>` (e.g., Jellyfin, Nextcloud).
+*   **Internal Services**: Services like the Pi-hole admin panel (`http://<your-ip>:8080/admin`) are protected by the firewall and are **not** accessible from the public internet by default.
+
+### 🔒 Secure Remote Access (SSH Tunneling)
+For services not exposed via Caddy, it is recommended to use an **SSH Tunnel** rather than opening more ports. To access the Pi-hole dashboard or other internal tools securely from a remote machine:
+
+```bash
+ssh -L 8080:localhost:8080 user@your-server-ip
+```
+*Then open `http://localhost:8080/admin` in your local browser.*
+
+*   **Master Dashboard**: All containers can be managed via **LazyDocker** by running `lazydocker` directly on the server.
 
 ## 🔐 Security & Variable Management
 - **Centralization**: All configurations live in `group_vars/all/vars.yml`.
