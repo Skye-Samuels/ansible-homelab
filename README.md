@@ -3,7 +3,7 @@
 A modular, layered Ansible project to deploy a complete media and home automation stack on a Debian-based server.
 
 ## Architecture
-This project uses a modular **Role-based** deployment strategy. Each role represents a layer in the stack, orchestrated by `main.yml`.
+This project is organized into modular roles, orchestrated by `main.yml`. Each role represents a functional layer in the stack.
 
 ### Core Infrastructure
 These roles form the foundation of your server.
@@ -126,10 +126,16 @@ You need to customize three main files before deploying:
     > **If your disks already contain data (movies, backups, etc.), set `format_disks: false` before running the playbook.**
 
 ### Step 3: Deploy
-Run the playbook from the root of the project:
+To deploy the entire stack:
 ```bash
 ansible-playbook main.yml --ask-vault-pass -K
 ```
+
+To deploy or update a specific service:
+```bash
+ansible-playbook main.yml --tags <service_name> --ask-vault-pass -K
+```
+
 ---
 
 ## Security & Variable Management
@@ -139,6 +145,7 @@ ansible-playbook main.yml --ask-vault-pass -K
 
 ## Maintenance & Uninstallation
 - **View Status**: Use `lazydocker` for container monitoring and `btop` for system performance.
+- **Accessing Admin Boards**: To find the correct port for SSH tunneling to a specific service, refer to the Service configurations section in `group_vars/all/vars.yml`.
 - **Edit Secrets**: `ansible-vault edit group_vars/all/vault.yml`
 - **Soft Teardown**: To remove a service but keep its data, set its `enable_*` flag to `false` in `vars.yml` and run `main.yml`.
 - **Hard Purge**: To permanently delete a service's persistent data, run:
@@ -146,7 +153,6 @@ ansible-playbook main.yml --ask-vault-pass -K
   ansible-playbook purge_data.yml
   ```
   *(This will prompt you for the service name and a confirmation).*
-- **Update Stack**: Simply pull the latest changes and re-run the `main.yml` playbook.
 
 ---
 
