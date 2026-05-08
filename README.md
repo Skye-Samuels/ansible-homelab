@@ -109,34 +109,22 @@ You need to customize three main files before deploying:
     ```
     *Use `ansible-vault edit group_vars/all/vault.yml` to add your real PIA and Pi-hole passwords.*
 3.  **Variables**: Open `group_vars/all/vars.yml` and review all settings.
-    *   **Timezone & Domain**: Look for the `CHANGE TO YOUR...` comments.
-    *   **Storage**: ⚠️ **IMPORTANT:** Verify `disk_1_source` and `disk_2_source`. The storage role will format these disks if `format_disks` is set to `true`.
+    *   **Identity**: Update `hostname_desired`, `timezone`, and `domain`.
+    *   **Feature Flags**: Enable or disable services (Nextcloud, Mealie, Jellyfin) by setting `enable_*` flags to `true` or `false`.
+    *   **Docker Config**: Ensure `puid` and `pgid` match your server's user (usually `1000`).
+    *   **Service Ports**: Review the default ports and VPN region.
+    *   **Storage**: Verify `disk_1_source` and `disk_2_source`.
+
+    > ⚠️ **CRITICAL: DATA LOSS WARNING**
+    > The storage role will **format** these disks if `format_disks` is set to `true`.
+    > **If your disks already contain data (movies, backups, etc.), set `format_disks: false` before running the playbook.**
 
 ### Step 3: Deploy
 Run the playbook from the root of the project:
 ```bash
 ansible-playbook main.yml --ask-vault-pass -K
 ```
-**Flag Breakdown:**
-*   `--ask-vault-pass`: Prompts for your Ansible Vault password.
-*   `-K` (or `--ask-become-pass`): Prompts for your server's `sudo` password.
-
 ---
-
-## 🌐 Accessing Your Services
-Once the deployment finishes, your services will be available at:
-*   **Public Services (via Caddy)**: `https://<subdomain>.<your-domain>` (e.g., Jellyfin, Nextcloud).
-*   **Internal Services**: Services like the Pi-hole admin panel (`http://<your-ip>:8080/admin`) are protected by the firewall and are **not** accessible from the public internet by default.
-
-### 🔒 Secure Remote Access (SSH Tunneling)
-For services not exposed via Caddy, it is recommended to use an **SSH Tunnel** rather than opening more ports. To access the Pi-hole dashboard or other internal tools securely from a remote machine:
-
-```bash
-ssh -L 8080:localhost:8080 user@your-server-ip
-```
-*Then open `http://localhost:8080/admin` in your local browser.*
-
-*   **Master Dashboard**: All containers can be managed via **LazyDocker** by running `lazydocker` directly on the server.
 
 ## 🔐 Security & Variable Management
 - **Centralization**: All configurations live in `group_vars/all/vars.yml`.
