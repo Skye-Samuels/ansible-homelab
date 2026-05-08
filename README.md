@@ -109,7 +109,7 @@ Before proceeding, verify that your control machine can connect to the server:
 ```bash
 ansible all -m ping
 ```
-If the ping fails, refer to the [SSH Configuration](docs/FULL_SETUP.md#2-ssh-configuration) guide for detailed setup instructions.
+If the ping fails, refer to the [SSH Configuration](docs/FULL_SETUP.md#3-ssh-configuration) guide for detailed setup instructions.
 
 ### Step 2: Configure Your Environment
 You need to customize three main files before deploying:

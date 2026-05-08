@@ -6,25 +6,63 @@ This guide provides a comprehensive, step-by-step walkthrough for users starting
 - **ISO**: I recommend the Debian 13 (trixie) ISO as that is what I have tested it on.
 - **Base System**: During installation, select only "Standard System Utilities" and "SSH Server." A GUI is not recommended for this server stack.
 
-## 2. SSH Configuration
-Before Ansible can connect, you must prepare the server for management.
+## 2. Server Account Setup
+Before configuring SSH, you must create the necessary accounts on your server. SSH into your server as `root` and run the following:
 
-1.  **Create Ansible User**: SSH into your new server as root or your initial user and create the management account:
-    ```bash
-    sudo adduser ansible
-    sudo usermod -aG sudo ansible
-    echo "ansible ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/ansible
-    ```
-2.  **Generate SSH Keys** (on your control machine):
+### Install Sudo & Create Automation User (Ansible)
+On minimal Debian installs, `sudo` is not installed by default. Run these as `root`:
+```bash
+apt update && apt install sudo -y
+
+# Create the automation user
+adduser ansible
+usermod -aG sudo ansible
+echo "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible
+```
+
+### Create Primary Admin User
+This is your personal account for manual management. Run these as `root`:
+
+> **IMPORTANT**: The username you use here **MUST** match the `admin_user` value you set in `group_vars/all/vars.yml`.
+
+```bash
+# Replace 'sysadmin' with your chosen admin_user from vars.yml
+adduser sysadmin
+usermod -aG sudo sysadmin
+```
+
+## 3. SSH Configuration
+Now, generate and push SSH keys from your **control machine** to these accounts.
+
+### Automation Key (Ansible)
+1. **Generate Key**:
     ```bash
     ssh-keygen -t ed25519 -f ~/.ssh/ansible_key
     ```
-3.  **Copy Key to Server**:
+    *Press Enter when prompted for a passphrase to keep it empty for automation.*
+2. **Copy Key to Server**:
     ```bash
     ssh-copy-id -i ~/.ssh/ansible_key ansible@your-server-ip
     ```
 
-## 3. Preparing the Control Machine
+### Manual Admin Key
+1. **Generate Key**:
+    ```bash
+    ssh-keygen -t ed25519 -f ~/.ssh/sysadmin_key
+    ```
+    *Enter a strong passphrase when prompted.*
+2. **Copy Key to Admin User**: Replace `sysadmin` with your chosen `admin_user`:
+    ```bash
+    ssh-copy-id -i ~/.ssh/sysadmin_key sysadmin@your-server-ip
+    ```
+
+## 4. Verify Connection
+Test that you can log in to both accounts successfully.
+
+- **Ansible**: `ssh -i ~/.ssh/ansible_key ansible@your-server-ip` (Should log in immediately).
+- **Admin**: `ssh -i ~/.ssh/sysadmin_key sysadmin@your-server-ip` (Should prompt for your passphrase).
+
+## 5. Preparing the Control Machine
 1.  **Install Ansible**: Follow the official guide for your OS (macOS, Linux, or WSL2).
 2.  **Clone this Repository**:
     ```bash
@@ -36,7 +74,7 @@ Before Ansible can connect, you must prepare the server for management.
     ansible-galaxy collection install -r requirements.yml
     ```
 
-## 4. Configuration
+## 6. Configuration
 You need to customize three main files before deploying:
 
 1.  **Inventory**: Open the `inventory` file and replace the placeholder IP with your server's IP address.
@@ -57,7 +95,7 @@ You need to customize three main files before deploying:
     > The storage role will format these disks if format_disks is set to true.
     > **If your disks already contain data (movies, backups, etc.), set format_disks: false before running the playbook.**
 
-## 5. Deployment
+## 7. Deployment
 To deploy the entire stack:
 ```bash
 ansible-playbook main.yml --ask-vault-pass -K
@@ -68,11 +106,11 @@ To deploy or update a specific service:
 ansible-playbook main.yml --tags <service_name> --ask-vault-pass -K
 ```
 
-## 6. Application Configuration
+## 8. Application Configuration
 After the containers are successfully running, you will need to perform some manual configuration inside each application's web interface.
 
 ### Jellyfin Stack
-- **Jellyfin**: The core media server. Add your libraries (mapped to `/data` inside the container) and set up your admin account.
+- **Jellyfin**: Access at `https://jellyfin.<your-domain>`. Add your libraries (mapped to `/data` inside the container) and set up your admin account.
 - **Management (Sonarr, Radarr, Prowlarr)**: 
     - **Prowlarr**: Add your indexers and sync them to Sonarr/Radarr.
     - **Sonarr/Radarr**: Configure your download client (qBitTorrent) and set your media paths.
@@ -80,8 +118,14 @@ After the containers are successfully running, you will need to perform some man
 - **Bazarr**: Automatically searches for and downloads subtitles for your media libraries.
 - **Wizarr**: A user-friendly invite system to easily share your Jellyfin server with others.
 - **Newtarr**: Enhances your stack with automated list management and media notifications.
-- **FlareSolverr**: A proxy server to bypass Cloudflare and DDoS protection for your indexers. You must add this as a "Proxy" in Prowlarr's indexer settings.
+- **FlareSolverr**: A proxy server to bypass Cloudflare and DDoS protection for your indexers.
 
 ### Nextcloud
 - **Admin Setup**: Follow the Nextcloud AIO interface at `https://cloud.<your-domain>:8081` to finalize the installation and create your admin account.
+
+## 9. Maintenance & Troubleshooting
+- **Logs**: View real-time logs for any container: `docker logs -f <container_name>`
+- **Status**: Run `lazydocker` on the server for a comprehensive terminal UI dashboard.
+- **Updates**: Pull the latest repository changes and re-run the playbook to apply updates.
+- **Storage Issues**: If the MergerFS pool is not visible, verify your disks are mounted correctly: `mount | grep /mnt/disk`
 
