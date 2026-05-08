@@ -3,7 +3,7 @@
 A modular, layered Ansible project to deploy a complete media and home automation stack on a Debian-based server.
 
 ## 🏗 Architecture & Layer Breakdown
-This project uses a modular **Role-based** deployment strategy. Each "layer" is an Ansible Role orchestrated by `main.yml`.
+This project uses a modular **Role-based** deployment strategy. Each layer is an Ansible Role orchestrated by `main.yml`.
 
 <details>
 <summary><b>[Layer 0] Storage</b></summary>
