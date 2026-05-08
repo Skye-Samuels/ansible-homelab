@@ -2,10 +2,10 @@
 
 A modular, layered Ansible project to deploy a complete media and home automation stack on a Debian-based server.
 
-## 🏗 Architecture & Layer Breakdown
+## Architecture & Layer Breakdown
 This project uses a modular **Role-based** deployment strategy. Each role represents a layer in the stack, orchestrated by `main.yml`.
 
-### 🛠 Core Infrastructure (Always Deployed)
+### Core Infrastructure (Always Deployed)
 These roles form the foundation of your server.
 
 <details>
@@ -61,7 +61,7 @@ These roles form the foundation of your server.
 - **Details:** Deploys Pi-hole with a customized web port and automated DNS health checks.
 </details>
 
-### 📦 Applications
+### Applications
 These services are toggled via `enable_*` flags in `vars.yml`.
 
 <details>
@@ -94,7 +94,7 @@ These services are toggled via `enable_*` flags in `vars.yml`.
 </details>
 
 
-## 🚀 Quick Start
+## Quick Start
 
 Follow these steps to get your homelab up and running.
 
@@ -121,7 +121,7 @@ You need to customize three main files before deploying:
     *   **Service Ports**: Review the default ports and VPN region.
     *   **Storage**: Verify `disk_1_source` and `disk_2_source`.
 
-    > ⚠️ **CRITICAL: DATA LOSS WARNING**
+    > **CRITICAL: DATA LOSS WARNING**
     > The storage role will **format** these disks if `format_disks` is set to `true`.
     > **If your disks already contain data (movies, backups, etc.), set `format_disks: false` before running the playbook.**
 
@@ -132,12 +132,12 @@ ansible-playbook main.yml --ask-vault-pass -K
 ```
 ---
 
-## 🔐 Security & Variable Management
+## Security & Variable Management
 - **Centralization**: All configurations live in `group_vars/all/vars.yml`.
 - **Encryption**: Sensitive data (PIA passwords, etc.) is stored in an encrypted `vault.yml` file using **Ansible Vault**.
 - **Modernization**: Uses Fully Qualified Collection Names (FQCN) and dynamic fact detection for cross-platform compatibility.
 
-## 🛠 Maintenance & Uninstallation
+## Maintenance & Uninstallation
 - **View Status**: Use `lazydocker` for container monitoring and `btop` for system performance.
 - **Edit Secrets**: `ansible-vault edit group_vars/all/vault.yml`
 - **Soft Teardown**: To remove a service but keep its data, set its `enable_*` flag to `false` in `vars.yml` and run `main.yml`.
@@ -150,5 +150,5 @@ ansible-playbook main.yml --ask-vault-pass -K
 
 ---
 
-## ⚖️ Disclaimer
+## Disclaimer
 This project is for **educational purposes only**. It is intended for managing personal media backups and home automation. The author does not condone or encourage any form of digital piracy or the illegal distribution of copyrighted material.
