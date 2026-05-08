@@ -49,3 +49,16 @@
         group: "{{ admin_user }}"
         mode: '0644'
       tags: always
+
+    - name: Verify Entire Stack Status
+      ansible.builtin.shell: "docker compose ps --format '{% raw %}table {{.Name}}\t{{.Status}}\t{{.Ports}}{% endraw %}'"
+      args:
+        chdir: "{{ docker_config_path }}"
+      register: global_status
+      changed_when: false
+      tags: always
+
+    - name: Show Global Stack Status
+      ansible.builtin.debug:
+        msg: "{{ global_status.stdout }}"
+      tags: always

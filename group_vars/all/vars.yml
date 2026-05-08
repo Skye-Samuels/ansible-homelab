@@ -15,8 +15,8 @@ dns_servers:
 # APPLICATION FEATURE FLAGS
 # Set to 'true' to deploy, 'false' to skip or stop the service
 ###############################################################################
-enable_nextcloud: false
-enable_mealie: false
+enable_nextcloud: true
+enable_mealie: true
 enable_jellyfin_stack: true
 
 ###############################################################################

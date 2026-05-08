@@ -45,17 +45,6 @@
   retries: 5
   delay: 10
 
-- name: Verify Container Status
-  ansible.builtin.shell: "docker compose -p {{ docker_project_name }} ps"
-  args:
-    chdir: "{{ docker_config_path }}/jellyfin-stack"
-  register: compose_status
-  changed_when: false
-
-- name: Show Container Status
-  ansible.builtin.debug:
-    var: compose_status.stdout_lines
-
 - name: Wait for Jellyfin to be ready
   ansible.builtin.uri:
     url: "http://127.0.0.1:{{ jellyfin_port }}"
