@@ -45,7 +45,7 @@ storage_root: "/storage"
 base_storage_path: "{{ storage_root }}/jellyfin/data"
 format_disks: true            # Set to false after first successful run
 
-storage_disks:
+storage_disks:  # CHANGE TO YOUR DRIVE(S)
   - { name: "disk1", path: "/dev/sdb" }
   - { name: "disk2", path: "/dev/sdc" }
   - { name: "disk3", path: "/dev/sdd" }
