@@ -7,7 +7,11 @@ This guide provides a comprehensive, step-by-step walkthrough for users starting
 - **Base System**: During installation, select only Standard System Utilities and SSH Server. A GUI is not recommended for this server stack.
 
 ## 2. Server Account Setup
-Before configuring SSH, you must create the necessary accounts on your server. SSH into your server as `root` and run the following:
+Before configuring SSH, you must create the necessary accounts on your server. To do this, switch to the **root** user:
+```bash
+su -
+```
+Once you are logged in as root, run the following:
 
 ### Install Sudo & Create Automation User (Ansible)
 On minimal Debian installs, `sudo` is not installed by default. Run these as `root`:
@@ -89,7 +93,7 @@ You need to customize three main files before deploying:
     *   **Feature Flags**: Enable or disable services (Nextcloud, Mealie, Jellyfin) by setting enable_* flags to true or false.
     *   **Docker Config**: Ensure puid and pgid match your server's user (usually 1000).
     *   **Service Ports**: Review the default ports and VPN region.
-    *   **Storage**: Verify disk_1_source and disk_2_source.
+    *   **Storage**: Verify `storage_disks`. You can define one or more disks in this list.
 
     > **CRITICAL: DATA LOSS WARNING**
     > The storage role will format these disks if format_disks is set to true.

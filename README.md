@@ -126,7 +126,7 @@ You need to customize three main files before deploying:
     *   **Feature Flags**: Enable or disable services (Nextcloud, Mealie, Jellyfin) by setting `enable_*` flags to `true` or `false`.
     *   **Docker Config**: Ensure `puid` and `pgid` match your server's user (usually `1000`).
     *   **Service Ports**: Review the default ports and VPN region.
-    *   **Storage**: Verify `disk_1_source` and `disk_2_source`.
+    *   **Storage**: Verify the `storage_disks` list. Add as many disks as you have.
 
     > **CRITICAL: DATA LOSS WARNING**
     > The storage role will **format** these disks if `format_disks` is set to `true`.

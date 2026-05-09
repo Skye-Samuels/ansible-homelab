@@ -1,49 +1,130 @@
 ---
-- name: Install MergerFS
+- name: Check which configured disks are physically present
+  ansible.builtin.stat:
+    path: "{{ item.path }}"
+  loop: "{{ storage_disks }}"
+  register: disk_stats
+
+- name: Filter available disks
+  ansible.builtin.set_fact:
+    available_disks: "{{ disk_stats.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+
+- name: Warn if configured disks are missing
+  ansible.builtin.debug:
+    msg: "WARNING: The following disks are in your config but MISSING from the system: {{ storage_disks | map(attribute='name') | difference(available_disks | map(attribute='name')) | join(', ') }}"
+  when: available_disks | length != storage_disks | length
+
+- name: Fail if no disks are available
+  ansible.builtin.fail:
+    msg: "No physical disks found from your storage_disks list! Cannot proceed with storage setup."
+  when: available_disks | length == 0
+
+- name: Install MergerFS (Only for multi-disk arrays)
   ansible.builtin.apt:
     name: mergerfs
     state: present
     update_cache: yes
+  when: available_disks | length > 1
 
-- name: Create mount points
+- name: Ensure mount point directories exist
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    mode: '0755'
-  loop:
-    - /mnt/disk1
-    - /mnt/disk2
-    - "{{ storage_root }}"
-  changed_when: false 
+  loop: "{{ (available_disks | map(attribute='name') | map('regex_replace', '^(.*)$', '/mnt/\\1') | list) + [storage_root] }}"
+  changed_when: false
 
 - name: Format disks
   community.general.filesystem:
     fstype: ext4
-    dev: "{{ item }}"
-  loop:
-    - "{{ disk_1_source }}"
-    - "{{ disk_2_source }}"
-  when: format_disks | bool 
+    dev: "{{ item.path }}"
+  loop: "{{ available_disks }}"
+  when: format_disks | bool
 
-- name: Mount physical disks
+- name: Mount physical disks to /mnt
   ansible.posix.mount:
     path: "/mnt/{{ item.name }}"
-    src: "{{ item.src }}"
+    src: "{{ item.path }}"
     fstype: ext4
+    opts: "defaults,nofail"
     state: mounted
-  loop:
-    - { name: 'disk1', src: "{{ disk_1_source }}" }
-    - { name: 'disk2', src: "{{ disk_2_source }}" }
+  loop: "{{ available_disks }}"
+
+- name: Define intended storage source
+  ansible.builtin.set_fact:
+    intended_storage_src: "{{ (available_disks | map(attribute='name') | map('regex_replace', '^(.*)$', '/mnt/\\1') | join(':')) if (available_disks | length > 1) else '/mnt/' + available_disks[0].name }}"
+    intended_storage_shorthand: "{{ (available_disks | map(attribute='name') | map('regex_replace', '^disk(\\d+)$', '\\1') | join(':')) if (available_disks | length > 1) else 'none' }}"
+
+- name: Check current storage_root mount status
+  ansible.builtin.command: "findmnt -n -o SOURCE,FSTYPE {{ storage_root }}"
+  register: current_mount_info
+  changed_when: false
+  failed_when: false
+
+- name: Force unmount storage_root if configuration has changed
+  ansible.posix.mount:
+    path: "{{ storage_root }}"
+    state: unmounted
+  when:
+    - current_mount_info.stdout != ""
+    - (intended_storage_src not in current_mount_info.stdout and intended_storage_shorthand not in current_mount_info.stdout and available_disks[0].path not in current_mount_info.stdout) or
+      (available_disks | length > 1 and 'fuse.mergerfs' not in current_mount_info.stdout) or
+      (available_disks | length == 1 and 'fuse.mergerfs' in current_mount_info.stdout)
 
 - name: Create MergerFS pool
   ansible.posix.mount:
     path: "{{ storage_root }}"
-    src: "/mnt/disk1:/mnt/disk2"
+    src: "{{ intended_storage_src }}"
     fstype: fuse.mergerfs
-    opts: "defaults,allow_other,use_ino,cache.files=off,dropcacheonclose=true,category.create=mfs"
+    opts: "defaults,allow_other,use_ino,cache.files=off,dropcacheonclose=true,category.create=mfs,nofail"
     state: mounted
+  when: available_disks | length > 1
 
-- name: Fix ownership on the MOUNTED pool
+- name: Bind mount single physical disk to storage root
+  ansible.posix.mount:
+    path: "{{ storage_root }}"
+    src: "{{ intended_storage_src }}"
+    fstype: none
+    opts: "bind,nofail"
+    state: mounted
+  when: available_disks | length == 1
+
+- name: Clean up orphaned mount points and fstab entries
+  block:
+    - name: Get list of current mount directories in /mnt
+      ansible.builtin.find:
+        paths: /mnt
+        file_type: directory
+      register: found_mounts
+
+    - name: Ensure orphaned disks are unmounted
+      ansible.posix.mount:
+        path: "{{ item.path }}"
+        state: unmounted
+      loop: "{{ found_mounts.files }}"
+      when: 
+        - item.path | basename is match('^disk\\d+$')
+        - item.path | basename not in available_disks | map(attribute='name') | list
+
+    - name: Remove orphaned disks from fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        regexp: "^.*{{ item.path | regex_escape }}.*$"
+        state: absent
+      loop: "{{ found_mounts.files }}"
+      when: 
+        - item.path | basename is match('^disk\\d+$')
+        - item.path | basename not in available_disks | map(attribute='name') | list
+
+    - name: Forcefully remove orphaned mount directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ found_mounts.files }}"
+      when: 
+        - item.path | basename is match('^disk\\d+$')
+        - item.path | basename not in available_disks | map(attribute='name') | list
+
+- name: Fix ownership on the storage root
   ansible.builtin.file:
     path: "{{ storage_root }}"
     owner: "{{ admin_user }}"
@@ -52,7 +133,7 @@
     state: directory
   changed_when: false
 
-- name: Verify MergerFS pool is active
+- name: Verify storage pool is active
   ansible.builtin.command: mountpoint -q "{{ storage_root }}"
   changed_when: false
   register: mount_check

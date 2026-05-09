@@ -44,8 +44,11 @@ docker_config_path: "/home/{{ admin_user }}/docker_configs"
 storage_root: "/storage"
 base_storage_path: "{{ storage_root }}/jellyfin/data"
 format_disks: true            # Set to false after first successful run
-disk_1_source: "/dev/sdb"     # CHANGE TO YOUR DISK ID
-disk_2_source: "/dev/sdc"     # CHANGE TO YOUR DISK ID
+
+storage_disks:
+  - { name: "disk1", path: "/dev/sdb" }
+  - { name: "disk2", path: "/dev/sdc" }
+  - { name: "disk3", path: "/dev/sdd" }
 
 ###############################################################################
 # SERVICE CONFIGURATIONS (Ports & VPN)
