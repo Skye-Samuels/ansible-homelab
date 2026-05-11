@@ -3,7 +3,7 @@
 This guide provides a comprehensive, step-by-step walkthrough for users starting from scratch.
 
 ## 1. Debian Installation
-- **ISO**: I recommend the Debian 13 (trixie) ISO as that is what I have tested it on.
+- **ISO**: I recommend the Debian 12 (Bookworm) or Debian 13 ([Trixie](https://www.debian.org/releases/trixie/debian-installer/index)) netinst ISO.
 - **Base System**: During installation, select only Standard System Utilities and SSH Server. A GUI is not recommended for this server stack.
 
 ## 2. Server Account Setup
@@ -16,7 +16,7 @@ Once you are logged in as root, run the following:
 ### Install Sudo & Create Automation User (Ansible)
 On minimal Debian installs, `sudo` is not installed by default. Run these as `root`:
 ```bash
-apt update && apt install sudo -y
+apt update && apt install sudo
 
 # Create the automation user
 adduser ansible
