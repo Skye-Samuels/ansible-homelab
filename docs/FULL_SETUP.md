@@ -21,7 +21,6 @@ apt update && apt install sudo
 # Create the automation user
 adduser ansible
 usermod -aG sudo ansible
-echo "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible
 ```
 
 ### Create Primary Admin User
@@ -30,7 +29,8 @@ This is your personal account for manual management. Run these as `root`:
 > **IMPORTANT**: The username you use here **MUST** match the `admin_user` value you set in `group_vars/all/vars.yml`.
 
 ```bash
-# Replace 'sysadmin' with your chosen admin_user from vars.yml
+# If you didn't create this user during OS installation, do it now:
+# (Replace 'sysadmin' with your chosen admin_user from vars.yml)
 adduser sysadmin
 usermod -aG sudo sysadmin
 ```
