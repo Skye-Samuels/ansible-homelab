@@ -144,7 +144,7 @@ ansible-playbook main.yml --tags <service_name> --ask-vault-pass -K
 ```
 
 ### Step 4: Post-Deployment Configuration
-Once your containers are running, you must perform manual setup for some services (e.g., configuring the Jellyfin stack components, libraries, and Nextcloud admin). Instructions for these steps are located in the [Full Setup Guide](docs/FULL_SETUP.md#6-application-configuration).
+Once your containers are running, you must perform manual setup for some services (e.g., configuring the Jellyfin stack components, mealie accounts and Nextcloud AIO configuration). Instructions for these steps are located in the [Full Setup Guide](docs/FULL_SETUP.md#6-application-configuration).
 
 ---
 
