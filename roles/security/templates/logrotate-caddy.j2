@@ -1,0 +1,11 @@
+# Managed by Ansible - Manual changes will be overwritten
+/var/log/caddy/*.log {
+    daily
+    missingok
+    rotate 7
+    compress
+    delaycompress
+    notifempty
+    copytruncate
+    create 0640 {{ admin_user }} root
+}

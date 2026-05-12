@@ -6,7 +6,16 @@
       - fail2ban
       - unattended-upgrades
       - apt-listchanges
+      - logrotate
     state: present
+
+- name: Deploy Caddy log rotation configuration
+  ansible.builtin.template:
+    src: logrotate-caddy.j2
+    dest: /etc/logrotate.d/caddy
+    owner: root
+    group: root
+    mode: "0644"
 
 - name: Enable automated update checking
   ansible.builtin.copy:

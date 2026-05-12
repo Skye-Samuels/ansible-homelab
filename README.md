@@ -154,8 +154,13 @@ Once your containers are running, you must perform manual setup for some service
 
 ---
 
-## Security & Variable Management
-- **Centralization**: All configuration settings live in `group_vars/all/vars.yml`.
+## Security & Maintenance
+This stack includes production-grade security and maintenance features built directly into the Ansible roles:
+
+- **Brute-Force Protection**: Global **Fail2ban** monitors Caddy logs and automatically bans malicious IPs across both Host and Docker-level services.
+- **Automated Updates**: **Unattended Upgrades** are configured to install critical security patches daily at 4:00 AM.
+- **System Stability**: Automated **Log Rotation** ensures that access logs are archived and compressed, keeping only the last 7 days of history to prevent disk exhaustion.
+- **Isolation**: The Caddy reverse proxy is isolated from the host's Docker socket using a **Security Proxy** to prevent host-escape vulnerabilities.
 - **Encryption**: Sensitive data (passwords, VPN credentials) is protected using **Ansible Vault**.
 - **Port Security**: Internal management boards are restricted to `localhost` and require an SSH tunnel for access.
 
