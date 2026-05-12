@@ -171,7 +171,7 @@ This stack includes production-grade security and maintenance features built dir
 - **Soft Teardown**: To remove a service but keep its data, set its `enable_*` flag to `false` in `vars.yml` and run `main.yml`.
 - **Hard Purge**: To permanently delete a service's persistent data, run:
   ```bash
-  ansible-playbook purge_data.yml
+  ansible-playbook purge_data.yml --ask-vault-pass -K
   ```
   *(This will prompt you for the service name and a confirmation).*
 
