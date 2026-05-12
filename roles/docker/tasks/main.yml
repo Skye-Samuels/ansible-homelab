@@ -59,14 +59,14 @@
     state: started
     enabled: yes
 
-- name: Add admin user to docker group
-  ansible.builtin.user:
-    name: "{{ admin_user }}"
-    groups: docker
-    append: yes
+- name: Ensure admin user is not in docker group
+  ansible.builtin.command: "gpasswd -d {{ admin_user }} docker"
+  failed_when: false
+  changed_when: false
 
 - name: Verify Docker is responding
   ansible.builtin.command: docker info
+  become: true
   changed_when: false
   register: docker_info
   failed_when: docker_info.rc != 0
