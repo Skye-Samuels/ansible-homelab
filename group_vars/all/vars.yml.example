@@ -21,13 +21,13 @@ enable_jellyfin_stack: false
 
 ###############################################################################
 # SUBDOMAINS
-# Used by Caddy for reverse proxy routing (e.g., cloud.example.com)
+# Used by Caddy for reverse proxy routing
 ###############################################################################
-nextcloud_subdomain: "cloud"
+nextcloud_subdomain: "nextcloud"
 mealie_subdomain: "mealie"
 jellyfin_subdomain: "jellyfin"
-jellyseerr_subdomain: "request"
-wizarr_subdomain: "join"
+jellyseerr_subdomain: "jellyseerr"
+wizarr_subdomain: "wizarr"
 
 ###############################################################################
 # DOCKER & USER CONFIG
@@ -47,13 +47,11 @@ format_disks: true            # Set to false after first successful run
 
 storage_disks:  # CHANGE TO YOUR DRIVE(S)
   - { name: "disk1", path: "/dev/sdb" }
-  - { name: "disk2", path: "/dev/sdc" }
-  - { name: "disk3", path: "/dev/sdd" }
 
 ###############################################################################
 # SERVICE CONFIGURATIONS (Ports & VPN)
 ###############################################################################
-vpn_region: "CA Vancouver" # For Gluetun/PIA VPN connection
+vpn_region: "CA Vancouver"
 pihole_web_port: 8080
 nextcloud_web_port: 8081
 mealie_web_port: 9000

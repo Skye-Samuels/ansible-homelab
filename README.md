@@ -115,9 +115,15 @@ If the ping fails, refer to the [SSH Configuration](docs/FULL_SETUP.md#3-ssh-con
 You need to customize three main files before deploying:
 
 1.  **Inventory**: Open the `inventory` file and replace the placeholder IP with your server's IP address.
-2.  **Secrets**:
+2.  **Configuration**:
     ```bash
+    cp group_vars/all/vars.yml.example group_vars/all/vars.yml
     cp group_vars/all/vault.yml.example group_vars/all/vault.yml
+    ```
+    *Edit `group_vars/all/vars.yml` to match your hardware (disk paths) and preferences (domain/timezone).*
+
+3.  **Secrets**:
+    ```bash
     ansible-vault encrypt group_vars/all/vault.yml
     ```
     *Use `ansible-vault edit group_vars/all/vault.yml` to add your real PIA and Pi-hole passwords.*

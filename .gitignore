@@ -3,8 +3,9 @@
 *.vault_pass
 .vault_pass
 
-# Secrets
+# Configuration
 group_vars/all/vault.yml
+group_vars/all/vars.yml
 
 # OS/Editor Junk
 .DS_Store
