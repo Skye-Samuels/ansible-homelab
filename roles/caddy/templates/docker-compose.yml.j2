@@ -1,18 +1,38 @@
 services:
+  # The docker-proxy provides a security layer between Caddy and the Docker socket.
+  # It only allows GET requests for containers, networks, and services.
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy
+    container_name: docker-proxy
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - CONTAINERS=1
+      - NETWORKS=1
+      - SERVICES=1
+    networks:
+      - docker-proxy-net
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+
   caddy:
     image: lucaslorentz/caddy-docker-proxy:latest
     container_name: caddy
     restart: unless-stopped
     environment:
-      CADDY_INGRESS_NETWORKS: "caddy_net"
+      - DOCKER_HOST=tcp://docker-proxy:2375
+      - CADDY_INGRESS_NETWORKS=caddy_net
     networks:
       - caddy_net
+      - docker-proxy-net
     ports:
       - "80:80"
       - "443:443"
       - "443:443/udp"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
       - caddy_data:/data
       - caddy_config:/config
       - /var/log/caddy:/var/log/caddy
@@ -23,6 +43,9 @@ services:
 networks:
   caddy_net:
     external: true
+  # Private network for Docker API traffic only
+  docker-proxy-net:
+    internal: true
 
 volumes:
   caddy_data:
