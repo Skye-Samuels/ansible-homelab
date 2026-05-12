@@ -22,7 +22,7 @@ services:
     labels:
       caddy: "{{ mealie_subdomain }}.{{ domain }}"
       caddy.reverse_proxy: "{{ '{{' }} upstreams 9000 {{ '}}' }}"
-
+      caddy.log: ""
 networks:
   caddy_net:
     external: true

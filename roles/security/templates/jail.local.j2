@@ -3,6 +3,7 @@ bantime = 1h
 findtime = 10m
 maxretry = 3
 action = %(action_)s
+# ignoreip = 127.0.0.1/8 ::1  # Uncomment this to test banning via SSH Tunnel
 
 [sshd]
 enabled = true
@@ -10,6 +11,19 @@ port = ssh
 filter = sshd
 logpath = /var/log/auth.log
 maxretry = 3
+
+[caddy-auth]
+enabled = true
+port = http,https
+filter = caddy-auth
+logpath = /var/log/caddy/access.log
+# Action 1: Block Host access (SSH, etc)
+# Action 2: Block Docker access (Jellyfin, Nextcloud, etc)
+action = iptables-allports[name=caddy-auth-host, chain=INPUT]
+         iptables-allports[name=caddy-auth-docker, chain=DOCKER-USER]
+maxretry = 5
+bantime = 24h
+findtime = 10m
 
 {% if extra_jails is defined %}
 {% for jail in extra_jails %}

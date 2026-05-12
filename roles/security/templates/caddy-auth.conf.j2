@@ -1,0 +1,5 @@
+[Definition]
+# Scan Caddy JSON logs for 401 or 403 errors
+# This extracts the 'remote_ip' and triggers on HTTP status 401 (Unauthorized) or 403 (Forbidden)
+failregex = ^.*"remote_ip":"<ADDR>".*"status":(401|403).*$
+ignoreregex =

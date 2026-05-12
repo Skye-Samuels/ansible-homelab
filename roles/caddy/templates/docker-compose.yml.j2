@@ -15,6 +15,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - caddy_data:/data
       - caddy_config:/config
+      - /var/log/caddy:/var/log/caddy
+    labels:
+      caddy.log.output: "file /var/log/caddy/access.log"
+      caddy.log.format: "json"
 
 networks:
   caddy_net:

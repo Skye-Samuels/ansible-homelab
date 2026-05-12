@@ -113,6 +113,7 @@ services:
     labels:
       caddy: "{{ jellyfin_subdomain }}.{{ domain }}"
       caddy.reverse_proxy: "{{ '{{' }} upstreams 8096 {{ '}}' }}"
+      caddy.log: ""
     restart: always
 
   jellyseerr:
@@ -131,6 +132,7 @@ services:
     labels:
       caddy: "{{ jellyseerr_subdomain }}.{{ domain }}"
       caddy.reverse_proxy: "{{ '{{' }} upstreams 5055 {{ '}}' }}"
+      caddy.log: ""
     restart: always
 
   wizarr:
@@ -150,6 +152,7 @@ services:
     labels:
       caddy: "{{ wizarr_subdomain }}.{{ domain }}"
       caddy.reverse_proxy: "{{ '{{' }} upstreams 5690 {{ '}}' }}"
+      caddy.log: ""
     restart: always
 
   newtarr:

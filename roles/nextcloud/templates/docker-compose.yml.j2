@@ -21,6 +21,7 @@ services:
     labels:
       caddy: "{{ nextcloud_subdomain }}.{{ domain }}"
       caddy.reverse_proxy: "nextcloud-aio-apache:11000"
+      caddy.log: ""
 
 networks:
   caddy_net:

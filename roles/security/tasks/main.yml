@@ -25,6 +25,15 @@
     mode: "0644"
   notify: restart fail2ban
 
+- name: Deploy Caddy Fail2ban filter
+  ansible.builtin.template:
+    src: caddy-auth.conf.j2
+    dest: /etc/fail2ban/filter.d/caddy-auth.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart fail2ban
+
 - name: Allow SSH through UFW
   community.general.ufw:
     rule: allow

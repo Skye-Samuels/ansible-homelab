@@ -20,6 +20,14 @@
     group: "{{ admin_user }}"
     mode: '0775'
 
+- name: Ensure Caddy log directory exists
+  ansible.builtin.file:
+    path: /var/log/caddy
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0755'
+
 - name: Deploy Caddy Compose Template
   ansible.builtin.template:
     src: docker-compose.yml.j2

@@ -17,7 +17,7 @@ dns_servers:
 ###############################################################################
 enable_nextcloud: false
 enable_mealie: false
-enable_jellyfin_stack: true
+enable_jellyfin_stack: false
 
 ###############################################################################
 # SUBDOMAINS
