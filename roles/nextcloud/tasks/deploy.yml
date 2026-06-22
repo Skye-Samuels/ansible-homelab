@@ -59,14 +59,3 @@
   until: ncaio_check.status in [200, 302]
   retries: 20
   delay: 5
-
-- name: Ensure Apache is connected to caddy_net
-  community.docker.docker_network:
-    name: caddy_net
-    connected:
-      - nextcloud-aio-apache
-    appends: yes
-  register: network_result
-  until: network_result is not failed
-  retries: 40
-  delay: 5

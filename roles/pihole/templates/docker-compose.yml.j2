@@ -14,3 +14,9 @@ services:
     volumes:
       - "/opt/pihole/etc-pihole:/etc/pihole"
       - "/opt/pihole/etc-dnsmasq.d:/etc/dnsmasq.d"
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true
