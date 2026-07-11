@@ -1,0 +1,235 @@
+---
+- name: Ensure Headscale directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0775'
+  loop:
+    - "{{ docker_config_path }}/headscale"
+    - "{{ docker_config_path }}/headscale/data"
+    - "{{ docker_config_path }}/headscale/headplane-data"
+
+- name: Deploy Headscale config
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: "{{ docker_config_path }}/headscale/config.yaml"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0644'
+
+- name: Deploy Headscale ACL policy
+  ansible.builtin.template:
+    src: policy.json.j2
+    dest: "{{ docker_config_path }}/headscale/policy.json"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0644'
+
+- name: Deploy Headscale Compose Template
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_config_path }}/headscale/docker-compose.yml"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0644'
+
+- name: Pull and Start Headscale
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/headscale"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}"
+    state: present
+    pull: always
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+  retries: 5
+  delay: 10
+
+- name: Allow Headscale direct access for dev domain
+  community.general.ufw:
+    rule: allow
+    port: "8088"
+    proto: tcp
+  when: "'.local' in domain"
+
+- name: Wait for Headscale to be ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:8088"
+    status_code: [200, 302, 400]
+  register: headscale_check
+  until: headscale_check.status in [200, 302, 400, 401]
+  retries: 30
+  delay: 2
+  changed_when: false
+
+- name: Create Headscale admin user
+  ansible.builtin.command: docker exec headscale headscale users create admin
+  register: hc_user_create
+  failed_when: false
+  changed_when: "'created' in hc_user_create.stdout or 'User created' in hc_user_create.stdout"
+
+- name: Get admin user ID
+  ansible.builtin.command: docker exec headscale headscale users list --output json
+  register: hc_users
+  changed_when: false
+
+- name: Extract admin user ID
+  ansible.builtin.set_fact:
+    hc_admin_id: "{{ (hc_users.stdout | from_json) | selectattr('name', 'equalto', 'admin') | map(attribute='id') | first }}"
+
+- name: Create Headscale API key
+  ansible.builtin.shell: |
+    if [ ! -f "{{ docker_config_path }}/headscale/api_key" ]; then
+      docker exec headscale headscale apikeys create > "{{ docker_config_path }}/headscale/api_key"
+    fi
+    cat "{{ docker_config_path }}/headscale/api_key"
+  register: hc_apikey
+  changed_when: false
+
+- name: Deploy Headplane config
+  ansible.builtin.template:
+    src: headplane-config.yaml.j2
+    dest: "{{ docker_config_path }}/headscale/headplane.yaml"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0644'
+  when: hc_apikey.stdout is defined
+
+- name: Recreate Headplane with new config
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/headscale"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}"
+    state: present
+    recreate: always
+    services:
+      - headplane
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+  changed_when: false
+
+- name: Restart Headscale to reload DNS config
+  ansible.builtin.command: docker restart headscale
+  changed_when: false
+
+- name: Show Headplane access info
+  ansible.builtin.debug:
+    msg: |
+      = HEADPLANE ADMIN DASHBOARD =
+      SSH tunnel:  ssh -L 3000:localhost:3000 homelab
+      Browser:     http://localhost:3000/admin
+      Login:       Paste this API key on first visit:
+                   {{ hc_apikey.stdout | trim }}
+      =========================
+  when: hc_apikey.stdout is defined
+
+- name: Create Headscale pre-auth key
+  ansible.builtin.shell: |
+    if [ ! -f "{{ docker_config_path }}/headscale/preauth_key" ]; then
+      docker exec headscale headscale preauthkeys create --user {{ hc_admin_id }} --reusable > "{{ docker_config_path }}/headscale/preauth_key"
+    fi
+    cat "{{ docker_config_path }}/headscale/preauth_key"
+  register: hc_key
+  changed_when: false
+
+- name: Create pre-auth key for tailscale client
+  ansible.builtin.shell: |
+    if [ ! -f "{{ docker_config_path }}/headscale/host_preauth_key" ]; then
+      docker exec headscale headscale preauthkeys create --user {{ hc_admin_id }} --reusable > "{{ docker_config_path }}/headscale/host_preauth_key"
+    fi
+    cat "{{ docker_config_path }}/headscale/host_preauth_key"
+  register: hc_host_key
+  changed_when: false
+
+- name: Show client connect (dev)
+  ansible.builtin.debug:
+    msg: |
+      = CLIENT CONNECTION (dev) =
+      Server URL:  http://{{ ansible_default_ipv4.address }}:8088
+      Auth key:    {{ hc_host_key.stdout | regex_search('hskey-auth-[^ ]+') }}
+      Mobile:      Tailscale app -> Use alternate server -> paste URL above
+                   Then: Auth key section -> paste key above
+      Laptop:      tailscale up --login-server=http://{{ ansible_default_ipv4.address }}:8088
+                   --auth-key=<key> --accept-routes --reset
+  when:
+    - hc_host_key.stdout is defined
+    - "'.local' in domain"
+
+- name: Show client connect (production)
+  ansible.builtin.debug:
+    msg: |
+      = CLIENT CONNECTION =
+      Command:    tailscale up --login-server=https://{{ headscale_subdomain }}.{{ domain }} --auth-key={{ hc_host_key.stdout | regex_search('hskey-auth-[^ ]+') }} --accept-routes --reset
+      Mobile:     Tailscale app -> Use alternate server: https://{{ headscale_subdomain }}.{{ domain }}
+                  Then: Auth key section -> paste below
+      Auth key:   {{ hc_host_key.stdout | regex_search('hskey-auth-[^ ]+') }}
+  when:
+    - hc_host_key.stdout is defined
+    - "'.local' not in domain"
+
+- name: Enable IP forwarding for subnet routing
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Ensure tailscale state directory exists
+  ansible.builtin.file:
+    path: "{{ docker_config_path }}/tailscale/state"
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Deploy tailscale client compose
+  ansible.builtin.template:
+    src: tailscale-compose.yml.j2
+    dest: "{{ docker_config_path }}/tailscale/docker-compose.yml"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0644'
+
+- name: Start tailscale client
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/tailscale"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}-tailscale"
+    state: present
+    pull: always
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+
+- name: Wait for tailscale client to join
+  ansible.builtin.command: docker exec headscale headscale nodes list --output json
+  register: hc_nodes
+  until: (hc_nodes.stdout | from_json) | selectattr('given_name', 'defined') | list | length > 1
+  retries: 30
+  delay: 2
+  changed_when: false
+
+- name: Allow tailnet traffic through UFW
+  community.general.ufw:
+    rule: allow
+    src: "100.64.0.0/10"
+
+- name: Allow WireGuard port through UFW
+  community.general.ufw:
+    rule: allow
+    port: "41641"
+    proto: udp
+
+- name: Find host node ID
+  ansible.builtin.set_fact:
+    hc_host_node_id: "{{ (hc_nodes.stdout | from_json) | selectattr('given_name', 'equalto', hostname_desired | default('homelab')) | map(attribute='id') | first }}"
+
+- name: Approve host subnet routes
+  ansible.builtin.command: >
+    docker exec headscale headscale nodes approve-routes
+    --identifier {{ hc_host_node_id }}
+    --routes {{ ansible_default_ipv4.network }}/24
+  changed_when: false
+  failed_when: false

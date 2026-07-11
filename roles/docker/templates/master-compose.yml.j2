@@ -16,3 +16,6 @@ include:
 {% if (enable_jellyfin_stack | default(false) | bool) %}
   - jellyfin-stack/docker-compose.yml
 {% endif %}
+{% if (enable_headscale | default(false) | bool) %}
+  - headscale/docker-compose.yml
+{% endif %}

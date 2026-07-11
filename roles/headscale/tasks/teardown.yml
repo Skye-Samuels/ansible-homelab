@@ -1,0 +1,62 @@
+---
+- name: Stop and remove Headscale compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/headscale"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}"
+    state: absent
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+  failed_when: false
+
+- name: Stop and remove tailscale client
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_config_path }}/tailscale"
+    files: ["docker-compose.yml"]
+    project_name: "{{ docker_project_name }}-tailscale"
+    state: absent
+  environment:
+    COMPOSE_IGNORE_ORPHANS: "true"
+  failed_when: false
+
+- name: Remove cached keys
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ docker_config_path }}/headscale/api_key"
+    - "{{ docker_config_path }}/headscale/preauth_key"
+    - "{{ docker_config_path }}/headscale/host_preauth_key"
+  failed_when: false
+
+- name: Remove Headscale direct access UFW rule
+  community.general.ufw:
+    rule: allow
+    port: "8088"
+    proto: tcp
+    delete: yes
+  ignore_errors: true
+  when: "'.local' in domain"
+
+- name: Remove tailnet UFW rule
+  community.general.ufw:
+    rule: allow
+    src: "100.64.0.0/10"
+    delete: yes
+  ignore_errors: true
+
+- name: Remove WireGuard UFW rule
+  community.general.ufw:
+    rule: allow
+    port: "41641"
+    proto: udp
+    delete: yes
+  ignore_errors: true
+
+- name: Disable IP forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "0"
+    sysctl_set: yes
+    state: present
+    reload: yes

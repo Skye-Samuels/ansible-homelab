@@ -18,6 +18,7 @@ dns_servers:
 enable_nextcloud: false
 enable_mealie: false
 enable_jellyfin_stack: false
+enable_headscale: false
 
 ###############################################################################
 # SUBDOMAINS
@@ -25,6 +26,8 @@ enable_jellyfin_stack: false
 ###############################################################################
 nextcloud_subdomain: "nextcloud"
 mealie_subdomain: "mealie"
+headscale_subdomain: "vpn"
+headscale_ui_subdomain: "headscale"
 jellyfin_subdomain: "jellyfin"
 jellyseerr_subdomain: "jellyseerr"
 wizarr_subdomain: "wizarr"

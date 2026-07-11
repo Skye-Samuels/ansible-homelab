@@ -1,0 +1,62 @@
+---
+server_url: "{% if '.local' in domain %}http://{{ ansible_default_ipv4.address }}:8088{% else %}https://{{ headscale_subdomain }}.{{ domain }}{% endif %}"
+listen_addr: "0.0.0.0:8080"
+metrics_listen_addr: "127.0.0.1:9090"
+trusted_proxies:
+  - "127.0.0.1/32"
+noise:
+  private_key_path: "/var/lib/headscale/noise_private.key"
+prefixes:
+  v4: "100.64.0.0/10"
+  v6: "fd7a:115c:a1e0::/48"
+ip_prefixes:
+  - "100.64.0.0/10"
+  - "fd7a:115c:a1e0::/48"
+derp:
+  server:
+    enabled: false
+  urls:
+    - "https://controlplane.tailscale.com/derpmap/default"
+  paths: []
+  auto_update_enabled: true
+disable_check_updates: true
+log:
+  format: text
+  level: info
+dns:
+  nameservers:
+    global:
+      - "100.64.0.2"
+      - "1.1.1.1"
+  extra_records:
+{% if enable_headscale | default(false) | bool %}
+{% if enable_jellyfin_stack | default(false) | bool %}
+    - name: "{{ jellyfin_subdomain }}.{{ domain }}"
+      value: "100.64.0.2"
+    - name: "{{ jellyseerr_subdomain }}.{{ domain }}"
+      value: "100.64.0.2"
+    - name: "{{ wizarr_subdomain }}.{{ domain }}"
+      value: "100.64.0.2"
+{% endif %}
+{% if enable_nextcloud | default(false) | bool %}
+    - name: "{{ nextcloud_subdomain }}.{{ domain }}"
+      value: "100.64.0.2"
+{% endif %}
+{% if enable_mealie | default(false) | bool %}
+    - name: "{{ mealie_subdomain }}.{{ domain }}"
+      value: "100.64.0.2"
+{% endif %}
+{% endif %}
+    - name: "{{ headscale_subdomain }}.{{ domain }}"
+      value: "{{ ansible_default_ipv4.address }}"
+    - name: "{{ headscale_ui_subdomain }}.{{ domain }}"
+      value: "{{ ansible_default_ipv4.address }}"
+  override_local_dns: true
+  magic_dns: false
+database:
+  type: sqlite3
+  sqlite:
+    path: "/var/lib/headscale/db.sqlite"
+policy:
+  mode: file
+  path: /etc/headscale/policy.json

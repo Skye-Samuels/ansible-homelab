@@ -1,0 +1,42 @@
+services:
+  headscale:
+    image: headscale/headscale:latest
+    container_name: headscale
+    restart: always
+    ports:
+{% if '.local' in domain %}
+      - "8088:8080"
+{% else %}
+      - "127.0.0.1:8088:8080"
+{% endif %}
+    networks:
+      - caddy_net
+    dns:
+      - "1.1.1.1"
+      - "8.8.8.8"
+    volumes:
+      - "{{ docker_config_path }}/headscale/config.yaml:/etc/headscale/config.yaml"
+      - "{{ docker_config_path }}/headscale/data:/var/lib/headscale"
+      - "{{ docker_config_path }}/headscale/policy.json:/etc/headscale/policy.json"
+    labels:
+      caddy_0: "{{ headscale_subdomain }}.{{ domain }}"
+      caddy_0.reverse_proxy: "{{ '{{' }} upstreams 8080 {{ '}}' }}"
+      caddy_0.log: ""
+    command: serve
+
+  headplane:
+    image: ghcr.io/tale/headplane:latest
+    container_name: headplane
+    restart: always
+    networks:
+      - caddy_net
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - "{{ docker_config_path }}/headscale/headplane.yaml:/etc/headplane/config.yaml"
+      - "{{ docker_config_path }}/headscale/headplane-data:/var/lib/headplane"
+      - "{{ docker_config_path }}/headscale/config.yaml:/etc/headscale/config.yaml:ro"
+
+networks:
+  caddy_net:
+    external: true

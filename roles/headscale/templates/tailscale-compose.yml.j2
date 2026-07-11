@@ -1,0 +1,18 @@
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: tailscale-client
+    restart: always
+    network_mode: host
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_AUTHKEY={{ hc_host_key.stdout | regex_search('hskey-auth-[^ ]+') }}
+      - TS_USERSPACE=false
+      - TS_EXTRA_ARGS=--login-server=http://127.0.0.1:8088 --advertise-routes={{ ansible_default_ipv4.network }}/24 --accept-dns=false
+    volumes:
+      - {{ docker_config_path }}/tailscale/state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun

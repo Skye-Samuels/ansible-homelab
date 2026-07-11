@@ -20,6 +20,9 @@ services:
       AIO_NETWORK: "caddy_net"
     labels:
       caddy: "{{ nextcloud_subdomain }}.{{ domain }}"
+{% if enable_headscale | default(false) | bool %}
+      caddy.tls: "internal"
+{% endif %}
       caddy.reverse_proxy: "nextcloud-aio-apache:11000"
       caddy.log: ""
 

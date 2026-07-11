@@ -31,6 +31,9 @@
     - role: pihole
       tags: pihole
 
+    - role: headscale
+      tags: headscale
+
     - role: nextcloud
       tags: nextcloud
 

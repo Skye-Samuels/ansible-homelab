@@ -46,13 +46,12 @@
   delay: 10
 
 - name: Wait for Jellyfin to be ready
-  ansible.builtin.uri:
-    url: "http://127.0.0.1:{{ jellyfin_port }}"
-    status_code: [200, 302]
+  ansible.builtin.command: docker exec jellyfin curl -sf http://localhost:8096
   register: jellyfin_check
-  until: jellyfin_check.status in [200, 302]
+  until: jellyfin_check.rc == 0
   retries: 20
   delay: 5
+  changed_when: false
 
 - name: Wait for qBitTorrent WebUI to be ready
   ansible.builtin.uri:

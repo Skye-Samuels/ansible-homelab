@@ -21,6 +21,9 @@ services:
       MAX_BODY_SIZE: "20M"
     labels:
       caddy: "{{ mealie_subdomain }}.{{ domain }}"
+{% if enable_headscale | default(false) | bool %}
+      caddy.tls: "internal"
+{% endif %}
       caddy.reverse_proxy: "{{ '{{' }} upstreams 9000 {{ '}}' }}"
       caddy.log: ""
 networks:

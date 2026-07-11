@@ -96,7 +96,7 @@ You need to customize three main files before deploying:
     *Use `ansible-vault edit group_vars/all/vault.yml` to add your real PIA and Pi-hole passwords.*
 4.  **Variables Review**: Open `group_vars/all/vars.yml` and review all settings:
     *   **Identity**: Update hostname_desired, timezone, and domain.
-    *   **Feature Flags**: Enable or disable services (Nextcloud, Mealie, Jellyfin) by setting enable_* flags to true or false.
+    *   **Feature Flags**: Enable or disable services (Headscale, Nextcloud, Mealie, Jellyfin) by setting enable_* flags to true or false.
     *   **Docker Config**: Ensure puid and pgid match your server's user (usually 1000).
     *   **Service Ports**: Review the default ports and VPN region.
     *   **Storage**: Verify `storage_disks`. You can define one or more disks in this list.
@@ -132,6 +132,14 @@ After the containers are successfully running, you will need to perform some man
 
 ### Nextcloud
 - **Admin Setup**: Follow the Nextcloud AIO interface at `https://cloud.<your-domain>:8081` to finalize the installation and create your admin account.
+
+### Headscale VPN
+- **Admin Dashboard**: SSH tunnel `ssh -L 3000:localhost:3000 <server>` then open `http://localhost:3000/admin`.
+- **First Login**: Paste the API key shown in the playbook output.
+- **Add Users**: Create users via the dashboard, generate pre-auth keys, share with clients.
+- **Client Setup**: Install Tailscale app, enter `https://vpn.<your-domain>` as alternate server, paste auth key.
+- **DNS**: Service domains (jellyfin, request, etc.) automatically resolve after connecting.
+- **Toggle Off**: Set `enable_headscale: false` in vars.yml and re-run playbook. All services revert to public access.
 
 ## 9. Maintenance & Troubleshooting
 - **Logs**: View real-time logs for any container: `docker logs -f <container_name>`

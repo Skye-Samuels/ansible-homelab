@@ -93,6 +93,20 @@ These services are toggled via `enable_*` flags in `vars.yml`.
 - **Details:** All traffic for downloaders and indexers is strictly routed through the `gluetun` VPN container to ensure privacy.
 </details>
 
+<details>
+<summary><b>Headscale VPN</b></summary>
+
+- **Purpose:** Self-hosted Tailscale-compatible coordination server for secure remote access.
+- **Technology:** `headscale/headscale` + `tailscale/tailscale` (kernel-mode subnet router).
+- **Admin UI:** `ghcr.io/tale/headplane` — full dashboard, SSH tunnel only (`localhost:3000`).
+- **Details:**
+  - Toggled via `enable_headscale`.
+  - Pushes DNS to clients — no per-device configuration needed.
+  - All service domains resolve through the tailnet.
+  - Zero public DNS for service subdomains.
+  - Subnet routing auto-configured.
+</details>
+
 
 ## Quick Start
 
@@ -129,7 +143,7 @@ You need to customize three main files before deploying:
     *Use `ansible-vault edit group_vars/all/vault.yml` to add your real PIA and Pi-hole passwords.*
 3.  **Variables**: Open `group_vars/all/vars.yml` and review all settings.
     *   **Identity**: Update `hostname_desired`, `timezone`, and `domain`.
-    *   **Feature Flags**: Enable or disable services (Nextcloud, Mealie, Jellyfin) by setting `enable_*` flags to `true` or `false`.
+    *   **Feature Flags**: Enable or disable services (Headscale, Nextcloud, Mealie, Jellyfin) by setting `enable_*` flags to `true` or `false`.
     *   **Docker Config**: Ensure `puid` and `pgid` match your server's user (usually `1000`).
     *   **Service Ports**: Review the default ports and VPN region.
     *   **Storage**: Verify the `storage_disks` list. Add as many disks as you have.
@@ -162,7 +176,7 @@ This stack includes production-grade security and maintenance features built dir
 - **System Stability**: Automated **Log Rotation** ensures that access logs are archived and compressed, keeping only the last 7 days of history to prevent disk exhaustion.
 - **Isolation**: The Caddy reverse proxy is isolated from the host's Docker socket using a **Security Proxy** to prevent host-escape vulnerabilities.
 - **Encryption**: Sensitive data (passwords, VPN credentials) is protected using **Ansible Vault**.
-- **Port Security**: Internal management boards are restricted to `localhost` and require an SSH tunnel for access.
+- **Port Security**: Internal management boards (qBittorrent, Sonarr, Headplane) are restricted to `localhost` and require an SSH tunnel for access.
 
 ## Maintenance & Uninstallation
 - **View Status**: Use `lazydocker` for container monitoring and `btop` for system performance.

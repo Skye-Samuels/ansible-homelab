@@ -14,7 +14,7 @@
   vars_prompt:
     - name: target_service
       prompt: "Which service data do you want to PERMANENTLY delete? (nextcloud,
-        mealie, jellyfin)"
+        mealie, jellyfin, headscale)"
       private: false
 
     - name: confirm_purge
@@ -55,10 +55,17 @@
         purge_paths: ["{{ storage_root }}/mealie"]
       when: target_service | lower == 'mealie'
 
+    - name: Set paths for Headscale
+      ansible.builtin.set_fact:
+        purge_paths:
+          - "{{ docker_config_path }}/headscale"
+          - "{{ docker_config_path }}/headscale/data"
+      when: target_service | lower == 'headscale'
+
     - name: Verify path variable is set
       ansible.builtin.fail:
         msg: "Invalid service name: {{ target_service }}. Use 'nextcloud', 'mealie', or
-          'jellyfin'."
+          'jellyfin' or 'headscale'."
       when: purge_paths is not defined
 
     - name: PERMANENTLY remove data directories
